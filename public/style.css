@@ -2,7 +2,8 @@ body, html {
 	background-color: #C0C0C0;
 	font-family: Arial, Helvetica, sans-serif;
 	margin: 0 auto;
-	padding: 0 auto;
+	padding: 0;
+	overflow: hidden;
 }
 
 #main-view {
