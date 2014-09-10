@@ -1,0 +1,18 @@
+{
+	"name": "polycrawl",
+	"version": "0.0.1",
+	"dependencies": {
+		"jquery": "1.11.x",
+		"Keypress": "2.0.3"
+	},
+	"install": {
+		"path": {
+			"js": "public/components"
+		},
+		"sources": {
+			"jquery": "bower_components/jquery/dist/jquery.min.js",
+			"Keypress": "bower_components/Keypress/keypress-2.0.3.min.js"
+		}
+	},
+	"private": true
+}
