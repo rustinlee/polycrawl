@@ -1,0 +1,16 @@
+{
+	"name": "polycrawl",
+	"version": "0.0.1",
+	"description": "multiplayer browser-based roguelike game",
+	"keywords": "game",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rustinlee/polycrawl.git"
+	},
+	"dependencies": {
+		"express": "4.9.x",
+		"jade": "1.6.x",
+		"socket.io": "1.1.x",
+		"underscore": "1.7.x"
+	}
+}
