@@ -12,9 +12,11 @@ function drawMap(map, context){
 		for(var j = 0; j < column.length; j++) {
 			var x = i * tileSize;
 			var y = j * tileSize;
+
 			context.rect(x, y, tileSize, tileSize);
-			context.fillText(column[j], x + tileSize * 0.1, y + tileSize * 0.9);
 			context.stroke();
+
+			context.fillText(column[j].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
 		}
 	}
 }

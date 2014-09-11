@@ -28,13 +28,25 @@ function createArray(length) {
 	return arr;
 }
 
+function Tile(solid, symbol) { //map tile constructor
+	this.creatures = []; //array of creatures within the tile
+	this.items = []; //array of items dropped on the tile
+	this.solid = solid || false; //does this tile impede movement
+	this.symbol = symbol; //the ASCII symbol to draw for the tile
+}
+
 function generateDungeon(width, height) { //for now, this function just makes a 2d array and fills it with '1'
 	var dungeon = createArray(width, height);
 
 	for(var i = 0; i < dungeon.length; i++) {
 		var column = dungeon[i];
 			for(var j = 0; j < column.length; j++) {
-				column[j] = 1;
+				//box in the map by making the edges collidable
+				if (i === 0 || i === dungeon.length - 1 || j === 0 || j === dungeon.length - 1) {
+					column[j] = new Tile(true, '#');
+				} else {
+					column[j] = new Tile(false, ',');
+				}
 				//console.log("dungeon[" + i + "][" + j + "] = " + column[j]);
 			}
 	}
