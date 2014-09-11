@@ -6,11 +6,12 @@
 		"Keypress": "2.0.3"
 	},
 	"install": {
-		"path": {
-			"js": "public/components"
-		},
+		"path": "public/components",
 		"sources": {
-			"jquery": "bower_components/jquery/dist/jquery.min.js",
+			"jquery": [
+				"bower_components/jquery/dist/jquery.min.js",
+				"bower_components/jquery/dist/jquery.min.map"
+			],
 			"Keypress": "bower_components/Keypress/keypress-2.0.3.min.js"
 		}
 	},
