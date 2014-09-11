@@ -17,6 +17,9 @@ function drawMap(map, context){
 			context.stroke();
 
 			context.fillText(column[j].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
+			for(var k = 0; k < column[j].creatures.length; k++) {
+				context.fillText(column[j].creatures[k].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
+			}
 		}
 	}
 }

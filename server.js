@@ -35,6 +35,10 @@ function Tile(solid, symbol) { //map tile constructor
 	this.symbol = symbol; //the ASCII symbol to draw for the tile
 }
 
+function Creature(symbol) {
+	this.symbol = symbol;
+}
+
 function generateDungeon(width, height) { //for now, this function just makes a 2d array and fills it with '1'
 	var dungeon = createArray(width, height);
 
@@ -61,5 +65,8 @@ console.log(dungeon);
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('message', { message: 'Welcome to the lobby.' });
+	socket.game_player = new Creature('@');
+	socket.game_player.position = [5,5];
+	dungeon[socket.game_player.position[0]][socket.game_player.position[1]].creatures.push(socket.game_player);
 	socket.emit('mapData', dungeon);
 });
