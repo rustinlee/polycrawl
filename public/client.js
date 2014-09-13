@@ -7,6 +7,8 @@ function setElementToViewportSize(element) {
 }
 
 function drawMap(level, context){
+	context.clearRect (0 , 0 , context.canvas.width, context.canvas.height);
+
 	for(var i = 0; i < level.mapData.length; i++) {
 		var column = level.mapData[i];
 		for(var j = 0; j < column.length; j++) {
@@ -14,7 +16,6 @@ function drawMap(level, context){
 			var y = j * tileSize;
 
 			context.rect(x, y, tileSize, tileSize);
-			context.stroke();
 
 			context.fillText(column[j].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
 		}
@@ -24,6 +25,8 @@ function drawMap(level, context){
 		var entity = level.gameEntities[i];
 		context.fillText(entity.symbol, entity.x * tileSize + tileSize * 0.1, entity.y  * tileSize + tileSize * 0.9);
 	}
+
+	context.stroke();
 }
 
 $(document).ready(function() {
@@ -42,6 +45,25 @@ $(document).ready(function() {
 	}
 	window.addEventListener('resize', onWindowResize, false);
 	onWindowResize();
+
+	$(window).keydown(function(data) {
+		switch(data.keyCode) {
+			case 87:
+				socket.emit('moveCommand', {x: 0, y: -1});
+				break;
+			case 83:
+				socket.emit('moveCommand', {x: 0, y: 1});
+				break;
+			case 65:
+				socket.emit('moveCommand', {x: -1, y: 0});
+				break;
+			case 68:
+				socket.emit('moveCommand', {x: 1, y: 0});
+				break;
+			default:
+				break;
+		}
+	});
 
 	//socket.IO server message handling
 	socket.on('message', function (data) {

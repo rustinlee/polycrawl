@@ -37,6 +37,11 @@ function Creature(symbol, x, y) {
 	this.symbol = symbol;
 	this.x = x;
 	this.y = y;
+
+	this.move = function(x, y) {
+		this.x += x;
+		this.y += y;
+	};
 }
 
 function Level(mapData) {
@@ -73,4 +78,9 @@ io.sockets.on('connection', function (socket) {
 	socket.game_player = new Creature('@', 5, 5);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('mapData', dungeon);
+
+	socket.on('moveCommand', function (data) {
+		socket.game_player.move(data.x, data.y);
+		io.sockets.emit('mapData', dungeon);
+	});
 });
