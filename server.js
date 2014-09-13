@@ -38,9 +38,11 @@ function Creature(symbol, x, y) {
 	this.x = x;
 	this.y = y;
 
-	this.move = function(x, y) {
-		this.x += x;
-		this.y += y;
+	this.move = function(x, y, mapData) {
+		if (!mapData[this.x + x][this.y + y].solid) {
+			this.x += x;
+			this.y += y;
+		}
 	};
 }
 
@@ -80,7 +82,7 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('mapData', dungeon);
 
 	socket.on('moveCommand', function (data) {
-		socket.game_player.move(data.x, data.y);
+		socket.game_player.move(data.x, data.y, dungeon.mapData);
 		io.sockets.emit('mapData', dungeon);
 	});
 });
