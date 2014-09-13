@@ -6,9 +6,9 @@ function setElementToViewportSize(element) {
 	element.attr('height', $(window).innerHeight());
 }
 
-function drawMap(map, context){
-	for(var i = 0; i < map.length; i++) {
-		var column = map[i];
+function drawMap(level, context){
+	for(var i = 0; i < level.mapData.length; i++) {
+		var column = level.mapData[i];
 		for(var j = 0; j < column.length; j++) {
 			var x = i * tileSize;
 			var y = j * tileSize;
@@ -17,10 +17,12 @@ function drawMap(map, context){
 			context.stroke();
 
 			context.fillText(column[j].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
-			for(var k = 0; k < column[j].creatures.length; k++) {
-				context.fillText(column[j].creatures[k].symbol, x + tileSize * 0.1, y + tileSize * 0.9);
-			}
 		}
+	}
+
+	for (var i = 0; i < level.gameEntities.length; i++) {
+		var entity = level.gameEntities[i];
+		context.fillText(entity.symbol, entity.x * tileSize + tileSize * 0.1, entity.y  * tileSize + tileSize * 0.9);
 	}
 }
 

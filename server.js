@@ -29,14 +29,19 @@ function createArray(length) {
 }
 
 function Tile(symbol, solid) { //map tile constructor
-	this.creatures = []; //array of creatures within the tile
-	this.items = []; //array of items dropped on the tile
 	this.solid = solid || false; //does this tile impede movement
 	this.symbol = symbol; //the ASCII symbol to draw for the tile
 }
 
-function Creature(symbol) {
+function Creature(symbol, x, y) {
 	this.symbol = symbol;
+	this.x = x;
+	this.y = y;
+}
+
+function Level(mapData) {
+	this.gameEntities = [];
+	this.mapData = mapData;
 }
 
 function generateDungeon(width, height) { //for now, this function just makes a 2d array and fills it with '1'
@@ -55,7 +60,7 @@ function generateDungeon(width, height) { //for now, this function just makes a 
 			}
 	}
 
-	return dungeon;
+	return new Level(dungeon);
 }
 
 var MAP_WIDTH = 10;
@@ -65,8 +70,7 @@ console.log(dungeon);
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('message', { message: 'Welcome to the lobby.' });
-	socket.game_player = new Creature('@');
-	socket.game_player.position = [5,5];
-	dungeon[socket.game_player.position[0]][socket.game_player.position[1]].creatures.push(socket.game_player);
+	socket.game_player = new Creature('@', 5, 5);
+	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('mapData', dungeon);
 });
