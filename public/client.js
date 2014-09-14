@@ -7,11 +7,6 @@ var currentLevel;
 var HORIZ_TILES = 30;
 var VERT_TILES = 30;
 
-function setElementToViewportSize(element) {
-	element.attr('width', $(window).innerWidth());
-	element.attr('height', $(window).innerHeight());
-}
-
 function drawMap(position){
 	renderEng.update(position.x, position.y);
 	for (var i = 0; i < currentLevel.gameEntities.length; i++) {
@@ -52,9 +47,17 @@ function getDungeonTile(x, y) {
 function resizeTerminal() {
 	var fontSizeW = $(window).innerWidth() / HORIZ_TILES;
 	var fontSizeH = $(window).innerHeight() / VERT_TILES;
-	$('body').css('font-size', Math.min(fontSizeW, fontSizeH));
+	var fontSize = Math.min(fontSizeW, fontSizeH);
+	$('body').css('font-size', fontSize);
+
 	term.setRenderer('auto');
 	term.render();
+
+	$('#game').css('width', fontSize * HORIZ_TILES);
+	$('#game').css('height', fontSize * VERT_TILES);
+	var viewWidth = parseInt($('#game').css('height'));
+	var viewHeight = parseInt($('#game').css('width'));
+	$('#game').css('margin', -viewWidth / 2 + 'px 0 0 ' + -viewHeight / 2 + 'px');
 }
 
 function initializeUt(mapData, terminalElement) {

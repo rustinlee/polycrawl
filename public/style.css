@@ -6,6 +6,12 @@ body, html {
 	overflow: hidden;
 }
 
+#game {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+}
+
 #main-view {
 	margin: 0 auto;
 }
