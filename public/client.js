@@ -4,7 +4,8 @@ var renderEng;
 var currentLevel;
 
 //graphical settings
-var tileSize = 40; //size of each tile in px (will likely end up scaling with viewport size)
+var HORIZ_TILES = 30;
+var VERT_TILES = 30;
 
 function setElementToViewportSize(element) {
 	element.attr('width', $(window).innerWidth());
@@ -48,8 +49,16 @@ function getDungeonTile(x, y) {
 	}
 }
 
+function resizeTerminal() {
+	var fontSizeW = $(window).innerWidth() / HORIZ_TILES;
+	var fontSizeH = $(window).innerHeight() / VERT_TILES;
+	$('body').css('font-size', Math.min(fontSizeW, fontSizeH));
+	term.setRenderer('auto');
+	term.render();
+}
+
 function initializeUt(mapData, terminalElement) {
-	term = new ut.Viewport(terminalElement, 15, 15, 'auto', true);
+	term = new ut.Viewport(terminalElement, HORIZ_TILES, VERT_TILES, 'auto', true);
 	renderEng = new ut.Engine(term, getDungeonTile, mapData[0].length, mapData.length);
 
 	initialized = true;
@@ -63,10 +72,9 @@ $(document).ready(function() {
 	var termElement = $('#game')[0];
 
 	function onWindowResize() {
-		setElementToViewportSize($(termElement));
+		resizeTerminal(termElement);
 	}
 	window.addEventListener('resize', onWindowResize, false);
-	onWindowResize();
 
 	$(window).keydown(function(data) {
 		switch(data.keyCode) {
@@ -93,8 +101,10 @@ $(document).ready(function() {
 	});
 
 	socket.on('levelData', function (data) {
-		if(initialized === false)
+		if(initialized === false) {
 			initializeUt(data[0].mapData, termElement);
+			onWindowResize();
+		}
 
 		currentLevel = data[0];
 		drawMap(data[1]);
