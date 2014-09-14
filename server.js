@@ -1,4 +1,5 @@
 var express = require("express");
+var _und = require('underscore');
 var app = express();
 var port = process.env.PORT || 8080;
 
@@ -33,10 +34,14 @@ function Tile(symbol, solid) { //map tile constructor
 	this.symbol = symbol; //the ASCII symbol to draw for the tile
 }
 
+var creatureID = 0;
+
 function Creature(symbol, x, y) {
 	this.symbol = symbol;
 	this.x = x;
 	this.y = y;
+	this.id = creatureID;
+	creatureID++;
 
 	this.move = function(x, y, mapData) {
 		if (!mapData[this.x + x][this.y + y].solid) {
@@ -80,10 +85,18 @@ io.sockets.on('connection', function (socket) {
 	socket.game_player = new Creature('@', 5, 5);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
+	socket.broadcast.emit('levelData', [dungeon]);
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
 		socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
+		socket.broadcast.emit('levelData', [dungeon]);
+	});
+
+	socket.on('disconnect', function() {
+		dungeon.gameEntities = _und.reject(dungeon.gameEntities, function(el) {
+			return el.id === socket.game_player.id;
+		});
 		socket.broadcast.emit('levelData', [dungeon]);
 	});
 });
