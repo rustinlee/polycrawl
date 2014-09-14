@@ -32,13 +32,10 @@ function getDungeonTile(x, y) {
 	switch(symbol){
 		case '#':
 			return WALL;
-			break;
 		case '.':
 			return FLOOR;
-			break;
 		case '@':
 			return AT;
-			break;
 		default:
 			return ut.NULLTILE;
 	}
@@ -68,9 +65,7 @@ function initializeUt(mapData, terminalElement) {
 }
 
 $(document).ready(function() {
-	var messages = [];
 	var socket = io.connect('http://'+location.host);
-	var level;
 
 	var termElement = $('#game')[0];
 
