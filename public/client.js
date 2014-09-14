@@ -2,6 +2,7 @@ var initialized = false;
 var term;
 var renderEng;
 var currentLevel;
+var playerPos;
 
 //graphical settings
 var HORIZ_TILES = 30;
@@ -105,6 +106,8 @@ $(document).ready(function() {
 		}
 
 		currentLevel = data[0];
-		drawMap(data[1]);
+		if(data.length > 1)
+			playerPos = data[1];
+		drawMap(playerPos);
 	});
 });

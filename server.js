@@ -83,6 +83,7 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
-		io.sockets.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
+		socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
+		socket.broadcast.emit('levelData', [dungeon]);
 	});
 });
