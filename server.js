@@ -61,7 +61,7 @@ function generateDungeon(width, height) { //for now, this function just makes a 
 				if (i === 0 || i === dungeon.length - 1 || j === 0 || j === dungeon.length - 1) {
 					column[j] = new Tile('#', true);
 				} else {
-					column[j] = new Tile(',', false);
+					column[j] = new Tile('.', false);
 				}
 				//console.log("dungeon[" + i + "][" + j + "] = " + column[j]);
 			}
@@ -79,10 +79,10 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('message', { message: 'Welcome to the lobby.' });
 	socket.game_player = new Creature('@', 5, 5);
 	dungeon.gameEntities.push(socket.game_player);
-	socket.emit('mapData', dungeon);
+	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
-		io.sockets.emit('mapData', dungeon);
+		io.sockets.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	});
 });

@@ -2,10 +2,13 @@ doctype html
 html
   head
     title PolyCrawl
+    link(href="components/unicodetiles.js/unicodetiles.css" rel="stylesheet" type="text/css")
+    script(src='/components/unicodetiles.js/unicodetiles.js')
+    script(src='/components/unicodetiles.js/ut.WebGLRenderer.js')
     script(src='/components/jquery/jquery.min.js')
     script(src='/client.js')
     script(src='/socket.io/socket.io.js')
     script(src='/components/Keypress/keypress-2.0.3.min.js')
     link(rel='stylesheet', href='/style.css')
   body
-    canvas#main-view
+    div#game
