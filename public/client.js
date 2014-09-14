@@ -17,9 +17,9 @@ function drawMap(position){
 	term.render();
 }
 
-var AT = new ut.Tile("@", 255, 255, 255);
-var WALL = new ut.Tile('#', 100, 100, 100);
-var FLOOR = new ut.Tile('.', 50, 50, 50);
+var AT = new ut.Tile("@", 255, 255, 255, 0, 0, 0);
+var WALL = new ut.Tile('#', 100, 100, 100, 0, 0, 0);
+var FLOOR = new ut.Tile('.', 50, 50, 50, 0, 0, 0);
 
 function getDungeonTile(x, y) {
 	var symbol;
@@ -58,9 +58,15 @@ function resizeTerminal() {
 	$('#game').css('margin', -viewWidth / 2 + 'px 0 0 ' + -viewHeight / 2 + 'px');
 }
 
+function onWindowResize() {
+	resizeTerminal();
+}
+
 function initializeUt(mapData, terminalElement) {
 	term = new ut.Viewport(terminalElement, HORIZ_TILES, VERT_TILES, 'auto', true);
 	renderEng = new ut.Engine(term, getDungeonTile, mapData[0].length, mapData.length);
+
+	window.addEventListener('resize', onWindowResize, false);
 
 	initialized = true;
 }
@@ -69,11 +75,6 @@ $(document).ready(function() {
 	var socket = io.connect('http://'+location.host);
 
 	var termElement = $('#game')[0];
-
-	function onWindowResize() {
-		resizeTerminal(termElement);
-	}
-	window.addEventListener('resize', onWindowResize, false);
 
 	$(window).keydown(function(data) {
 		switch(data.keyCode) {
