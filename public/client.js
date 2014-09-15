@@ -25,7 +25,7 @@ function getDungeonTile(x, y) {
 	var symbol;
 
 	try {
-		symbol = currentLevel.mapData[x][y].symbol;
+		symbol = currentLevel.mapData[x][y];
 	} catch(err) {
 		return ut.NULLTILE;
 	}

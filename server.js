@@ -29,11 +29,6 @@ function createArray(length) {
 	return arr;
 }
 
-function Tile(symbol, solid) { //map tile constructor
-	this.solid = solid || false; //does this tile impede movement
-	this.symbol = symbol; //the ASCII symbol to draw for the tile
-}
-
 var creatureID = 0;
 
 function Creature(symbol, x, y) {
@@ -44,7 +39,7 @@ function Creature(symbol, x, y) {
 	creatureID++;
 
 	this.move = function(x, y, mapData) {
-		if (!mapData[this.x + x][this.y + y].solid) {
+		if (mapData[this.x + x][this.y + y] !== '#') {
 			this.x += x;
 			this.y += y;
 		}
@@ -56,29 +51,141 @@ function Level(mapData) {
 	this.mapData = mapData;
 }
 
-function generateDungeon(width, height) { //for now, this function just makes a 2d array and fills it with '1'
-	var dungeon = createArray(width, height);
+function Vector2(x, y) {
+	this.x = x;
+	this.y = y;
 
-	for(var i = 0; i < dungeon.length; i++) {
-		var column = dungeon[i];
-			for(var j = 0; j < column.length; j++) {
-				//box in the map by making the edges collidable
-				if (i === 0 || i === dungeon.length - 1 || j === 0 || j === dungeon.length - 1) {
-					column[j] = new Tile('#', true);
-				} else {
-					column[j] = new Tile('.', false);
-				}
-				//console.log("dungeon[" + i + "][" + j + "] = " + column[j]);
-			}
-	}
+	this.isEqual = function (vec) { //underscore has a func for this
+		return (this.x === vec.x) && (this.y === vec.y);
+	};
 
-	return new Level(dungeon);
+	this.add = function (x, y) {
+		this.x += x;
+		this.y += y;
+	};
 }
 
-var MAP_WIDTH = 10;
-var MAP_HEIGHT = 10;
-var dungeon = generateDungeon(MAP_WIDTH, MAP_HEIGHT);
-console.log(dungeon);
+function vec2RandomAdd(vec2, amt) {
+	switch (Math.floor(Math.random() * 4)) {
+		case 0:
+			vec2.add(amt, 0);
+			break;
+		case 1:
+			vec2.add(-amt, 0);
+			break;
+		case 2:
+			vec2.add(0, amt);
+			break;
+		case 3:
+			vec2.add(0, -amt);
+			break;
+	}
+
+	return vec2;
+}
+
+function generateDungeon(size) {
+	var startPoint = new Vector2(0, 0);
+	var points = [];
+	points.push(startPoint);
+
+	var currentPoint = new Vector2(startPoint.x, startPoint.y);
+
+	var i = 0;
+	var j = 0;
+
+	for (i = 0; i < size - 1; i++) {
+		var generatingUniquePoint = true;
+		while (generatingUniquePoint) {
+			var currentPoint = vec2RandomAdd(new Vector2(currentPoint.x, currentPoint.y), 1);
+
+			var searching = true;
+			var duplicate = false;
+
+			while (searching) {
+				//console.log('checking to see if (' + currentPoint.x + ',' + currentPoint.y + ') is equal to points[' + j + '] (' + points[j].x + ',' + points[j].y + ')');
+				if (currentPoint.isEqual(points[j])) {
+					duplicate = true;
+					searching = false;
+					//console.log('(' + currentPoint.x + ',' + currentPoint.y + ') is equal to points[' + j + '] (' + points[j].x + ',' + points[j].y + ')');
+					j = 0;
+				}
+
+				j++;
+
+				if (j === points.length) {
+					searching = false;
+					generatingUniquePoint = false;
+					j = 0;
+					k = 0;
+					//console.log('reached end of current points array and (' + currentPoint.x + ',' + currentPoint.y + ') is unique');
+				}
+			}
+
+			if (!duplicate) {
+				points.push(currentPoint);
+			}
+		}
+	}
+	//console.log(points);
+
+	//find range and domain
+	var lowestX = 0;
+	var lowestY = 0;
+	var greatestX = 0;
+	var greatestY = 0;
+	for (i = 0; i < points.length; i++) {
+		if (points[i].x < lowestX) {
+			lowestX = points[i].x;
+		} else if (points[i].x > greatestX) {
+			greatestX = points[i].x;
+		}
+
+		if (points[i].y < lowestY) {
+			lowestY = points[i].y;
+		} else if (points[i].y > greatestY) {
+			greatestY = points[i].y;
+		}
+
+		//console.log('currently on #' + i + ' for range calculations');
+	}
+
+	//console.log('lowest x and y: ' + lowestX + ' ' + lowestY);
+	//console.log('highest x and y: ' + greatestX + ' ' + greatestY);
+
+	//shift values so lowest value is 0
+	for (i = 0; i < points.length; i++) {
+		points[i].add(Math.abs(lowestX), Math.abs(lowestY));
+	}
+
+	var domain = greatestX + Math.abs(lowestX);
+	var range = greatestY + Math.abs(lowestY);
+	//console.log('domain : ' + domain);
+	//console.log('range : ' + range);
+
+	//generate a blank map
+	var mapArray = [];
+	var mapX = '';
+	for (i = 0; i <= domain; i++) {
+		mapX += '#';
+	}
+
+	for (i = 0; i <= range; i++) {
+		mapArray.push(mapX);
+	}
+
+	//add points to map
+	for (i = 0; i < points.length; i++) {
+		var string = mapArray[points[i].y];
+		mapArray[points[i].y] = string.substring(0, points[i].x) + '.' + string.substring(points[i].x + 1, string.length);
+	}
+
+	return new Level(mapArray);
+}
+
+var mapSize = 2500; //number of walkable tiles in the final map
+var dungeon = generateDungeon(mapSize);
+//console.log(dungeon);
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('message', { message: 'Welcome to the lobby.' });
