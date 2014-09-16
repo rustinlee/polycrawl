@@ -179,11 +179,19 @@ function generateDungeon(size) {
 	//add points to map
 	for (i = 0; i < points.length; i++) {
 		if (i === points.length - 1) {
-			playerSpawn = new Vector2(points[i].x, points[i].y);
+			playerSpawn = new Vector2(points[i].x + 1, points[i].y + 1); //add 1 to compensate for boundary addition
 		}
 
 		var string = mapArray[points[i].x];
 		mapArray[points[i].x] = string.substring(0, points[i].y) + '.' + string.substring(points[i].y + 1, string.length);
+	}
+
+	//box off the edges
+	mapArray.unshift(mapY);
+	mapArray.push(mapY);
+
+	for (var i = 0; i < mapArray.length; i++) {
+		mapArray[i] = '#' + mapArray[i] + '#';
 	}
 
 	return new Level(mapArray);
