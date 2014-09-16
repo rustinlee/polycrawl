@@ -190,8 +190,43 @@ function generateDungeon(size) {
 	mapArray.unshift(mapY);
 	mapArray.push(mapY);
 
-	for (var i = 0; i < mapArray.length; i++) {
+	for (i = 0; i < mapArray.length; i++) {
 		mapArray[i] = '#' + mapArray[i] + '#';
+	}
+
+	//clean up the unnecessary walls
+	for (var x = 0; x < mapArray.length; x++) {
+		for (var y = 0; y < mapArray[x].length; y++) {
+			//todo: figure out a way to do this ~programmatically~
+			var adj1;
+			var adj3;
+			var adj4;
+			var adj5;
+			var adj6;
+			var adj8;
+
+			if (mapArray[x - 1] != undefined) {
+				adj1 = (mapArray[x - 1][y - 1] === '.');
+				adj4 = (mapArray[x - 1][y] === '.');
+				adj6 = (mapArray[x - 1][y + 1] === '.');
+			}
+
+			if (mapArray[x + 1] != undefined) {
+				adj3 = (mapArray[x + 1][y - 1] === '.');
+				adj5 = (mapArray[x + 1][y] === '.');
+				adj8 = (mapArray[x + 1][y + 1] === '.');
+			}
+
+			var adj2 = (mapArray[x][y - 1] === '.');
+			var adj7 = (mapArray[x][y + 1] === '.');
+
+			var adj = adj1 || adj2 || adj3 || adj4 || adj5 || adj6 || adj7 || adj8; //is this cell adjacent to a '.'
+
+			if (!adj) {
+				var string = mapArray[x];
+				mapArray[x] = string.substring(0, y) + ' ' + string.substring(y + 1, string.length);
+			}
+		}
 	}
 
 	return new Level(mapArray);
