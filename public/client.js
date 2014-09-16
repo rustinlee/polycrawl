@@ -64,7 +64,7 @@ function onWindowResize() {
 
 function initializeUt(mapData, terminalElement) {
 	term = new ut.Viewport(terminalElement, HORIZ_TILES, VERT_TILES, 'auto', true);
-	renderEng = new ut.Engine(term, getDungeonTile, mapData.length, mapData[0].length);
+	renderEng = new ut.Engine(term, getDungeonTile, undefined, undefined);
 
 	window.addEventListener('resize', onWindowResize, false);
 
