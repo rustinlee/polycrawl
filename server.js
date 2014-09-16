@@ -84,6 +84,8 @@ function vec2RandomAdd(vec2, amt) {
 	return vec2;
 }
 
+var playerSpawn = new Vector2(0, 0);
+
 function generateDungeon(size) {
 	var startPoint = new Vector2(0, 0);
 	var points = [];
@@ -165,19 +167,23 @@ function generateDungeon(size) {
 
 	//generate a blank map
 	var mapArray = [];
-	var mapX = '';
-	for (i = 0; i <= domain; i++) {
-		mapX += '#';
+	var mapY = '';
+	for (i = 0; i <= range; i++) {
+		mapY += '#';
 	}
 
-	for (i = 0; i <= range; i++) {
-		mapArray.push(mapX);
+	for (i = 0; i <= domain; i++) {
+		mapArray.push(mapY);
 	}
 
 	//add points to map
 	for (i = 0; i < points.length; i++) {
-		var string = mapArray[points[i].y];
-		mapArray[points[i].y] = string.substring(0, points[i].x) + '.' + string.substring(points[i].x + 1, string.length);
+		if (i === points.length - 1) {
+			playerSpawn = new Vector2(points[i].x, points[i].y);
+		}
+
+		var string = mapArray[points[i].x];
+		mapArray[points[i].x] = string.substring(0, points[i].y) + '.' + string.substring(points[i].y + 1, string.length);
 	}
 
 	return new Level(mapArray);
@@ -189,7 +195,7 @@ var dungeon = generateDungeon(mapSize);
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('message', { message: 'Welcome to the lobby.' });
-	socket.game_player = new Creature('@', 5, 5);
+	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('levelData', [dungeon]);
