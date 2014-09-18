@@ -51,11 +51,11 @@ function resizeTerminal() {
 	term.setRenderer('auto');
 	term.render();
 
-	$('#game').css('width', fontSize * HORIZ_TILES);
-	$('#game').css('height', fontSize * VERT_TILES);
-	var viewWidth = parseInt($('#game').css('height'));
-	var viewHeight = parseInt($('#game').css('width'));
-	$('#game').css('margin', -viewWidth / 2 + 'px 0 0 ' + -viewHeight / 2 + 'px');
+	$('#main-view').css('width', fontSize * HORIZ_TILES);
+	$('#main-view').css('height', fontSize * VERT_TILES);
+	var viewWidth = parseInt($('#main-view').css('height'));
+	var viewHeight = parseInt($('#main-view').css('width'));
+	$('#main-view').css('margin', -viewWidth / 2 + 'px 0 0 ' + -viewHeight / 2 + 'px');
 }
 
 function onWindowResize() {
@@ -75,23 +75,34 @@ $(document).ready(function() {
 	var socket = io.connect('http://'+location.host);
 
 	var termElement = $('#game')[0];
+	var chatFocused = false;
+
+	$('#chat-input').focusin(function() {
+		chatFocused = true;
+	});
+
+	$('#chat-input').focusout(function() {
+		chatFocused = false;
+	});
 
 	$(window).keydown(function(data) {
-		switch(data.keyCode) {
-			case 87:
-				socket.emit('moveCommand', {x: 0, y: -1});
-				break;
-			case 83:
-				socket.emit('moveCommand', {x: 0, y: 1});
-				break;
-			case 65:
-				socket.emit('moveCommand', {x: -1, y: 0});
-				break;
-			case 68:
-				socket.emit('moveCommand', {x: 1, y: 0});
-				break;
-			default:
-				break;
+		if (!chatFocused) {
+			switch(data.keyCode) {
+				case 87:
+					socket.emit('moveCommand', {x: 0, y: -1});
+					break;
+				case 83:
+					socket.emit('moveCommand', {x: 0, y: 1});
+					break;
+				case 65:
+					socket.emit('moveCommand', {x: -1, y: 0});
+					break;
+				case 68:
+					socket.emit('moveCommand', {x: 1, y: 0});
+					break;
+				default:
+					break;
+			}
 		}
 	});
 

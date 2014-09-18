@@ -4,15 +4,52 @@ body, html {
 	margin: 0 auto;
 	padding: 0;
 	overflow: hidden;
+	box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+#main-view {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin: 0 auto;
+	background-color: #000000;
 }
 
 #game {
 	position: absolute;
-	left: 50%;
-	top: 50%;
+	left: 0px;
+	top: 0px;
+	padding: 0px;
 	background-color: #000000;
 }
 
-#main-view {
-	margin: 0 auto;
+#msg-log-container {
+	color: #FFF;
+	position: relative;
+	left: 1%;
+	top: 84%;
+	width: 30%;
+	height: 15%;
+}
+
+#msg-log {
+	position: relative;
+	width: 100%;
+	height: 85%;
+	overflow: hidden;
+	background-color: rgba(20, 20, 20, 0.5);
+	border: 1px solid #C0C0C0;
+}
+
+#chat-input {
+	position: absolute;
+	top: 85%;
+	height: 15%;
+	width: 100%;
+	background-color: rgba(100, 100, 100, 0.5);
+	border: none;
 }
