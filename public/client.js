@@ -88,16 +88,24 @@ $(document).ready(function() {
 	$(window).keydown(function(data) {
 		if (!chatFocused) {
 			switch(data.keyCode) {
-				case 87:
+				case 87: // W
+				case 73: // I
+				case 38: // ↑
 					socket.emit('moveCommand', {x: 0, y: -1});
 					break;
-				case 83:
+				case 83: // S
+				case 75: // K
+				case 40: // ↓
 					socket.emit('moveCommand', {x: 0, y: 1});
 					break;
-				case 65:
+				case 65: // A
+				case 74: // J
+				case 37: // ←
 					socket.emit('moveCommand', {x: -1, y: 0});
 					break;
-				case 68:
+				case 68: // D
+				case 76: // L
+				case 39: // →
 					socket.emit('moveCommand', {x: 1, y: 0});
 					break;
 				default:
