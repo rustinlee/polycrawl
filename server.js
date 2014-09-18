@@ -236,8 +236,28 @@ var mapSize = 2500; //number of walkable tiles in the final map
 var dungeon = generateDungeon(mapSize);
 //console.log(dungeon);
 
+var claimedNicknames = [];
+
+function changeNickname (socket, nickname) {
+	if (nickname !== undefined && nickname.length > 2) {
+		if (claimedNicknames.indexOf(nickname) === -1) {
+			var index = claimedNicknames.indexOf(socket.nickname);
+			if (index !== -1)
+				claimedNicknames.splice(index, 1);
+			claimedNicknames.push(nickname);
+			io.sockets.emit('chatMessage', { message: socket.nickname + ' has changed their name to ' + nickname + '.'});
+			socket.nickname = nickname;
+		} else {
+			socket.emit('chatMessage', { message: 'That name has already been claimed.'});
+		}
+	} else {
+		socket.emit('chatMessage', { message: 'That nickname is too short. '});
+	}
+}
+
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
+	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
@@ -253,13 +273,25 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('chatMessage', function (data) {
 		if (data.message.length) {
-			if (Date.now() - socket.lastMsgTime > 500) {
-				data.nickname = socket.nickname;
-				io.sockets.emit('chatMessage', data);
+			if (data.message.substring(0, 1) !== '/') {
+				if (Date.now() - socket.lastMsgTime > 500) {
+					data.nickname = socket.nickname;
+					io.sockets.emit('chatMessage', data);
 
-				socket.lastMsgTime = Date.now();
+					socket.lastMsgTime = Date.now();
+				} else {
+					socket.emit('chatMessage', { message: 'Please slow down your messages.'});
+				}
 			} else {
-				socket.emit('chatMessage', { message: 'Please slow down your messages.'});
+				var cmd = data.message.split(' ');
+				switch (cmd[0]) {
+					case '/nickname':
+					case '/nick':
+						changeNickname(socket, cmd[1]);
+						break;
+					default:
+						socket.emit('chatMessage', { message: 'Command not recognized.'});
+				}
 			}
 		}
 	});
