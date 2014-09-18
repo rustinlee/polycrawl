@@ -237,16 +237,31 @@ var dungeon = generateDungeon(mapSize);
 //console.log(dungeon);
 
 io.sockets.on('connection', function (socket) {
-	socket.emit('message', { message: 'Welcome to the lobby.' });
+	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('levelData', [dungeon]);
+	socket.nickname = 'Player ' + socket.id.substring(0, 5);
+	socket.lastMsgTime = Date.now();
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
 		socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 		socket.broadcast.emit('levelData', [dungeon]);
+	});
+
+	socket.on('chatMessage', function (data) {
+		if (data.message.length) {
+			if (Date.now() - socket.lastMsgTime > 500) {
+				data.nickname = socket.nickname;
+				io.sockets.emit('chatMessage', data);
+
+				socket.lastMsgTime = Date.now();
+			} else {
+				socket.emit('chatMessage', { message: 'Please slow down your messages.'});
+			}
+		}
 	});
 
 	socket.on('disconnect', function() {

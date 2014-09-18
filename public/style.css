@@ -40,12 +40,15 @@ body, html {
 	position: relative;
 	width: 100%;
 	height: 85%;
-	overflow: hidden;
+	overflow-y: scroll;
 	background-color: rgba(20, 20, 20, 0.5);
 	border: 1px solid #C0C0C0;
+
+	font-size: 50%;
 }
 
 #chat-input {
+	color: #FFF;
 	position: absolute;
 	top: 85%;
 	height: 15%;
