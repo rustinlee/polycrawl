@@ -1,5 +1,6 @@
 var express = require("express");
 var _und = require('underscore');
+var validator = require('validator');
 var app = express();
 var port = process.env.PORT || 8080;
 
@@ -239,23 +240,29 @@ var dungeon = generateDungeon(mapSize);
 var claimedNicknames = [];
 
 function changeNickname (socket, nickname) {
-	if (nickname !== undefined && nickname.length > 2 && nickname.length < 13) {
-		if (claimedNicknames.indexOf(nickname) === -1) {
-			var index = claimedNicknames.indexOf(socket.nickname);
-			if (index !== -1)
-				claimedNicknames.splice(index, 1);
-			claimedNicknames.push(nickname);
-			io.sockets.emit('chatMessage', { message: socket.nickname + ' has changed their name to ' + nickname + '.'});
-			socket.nickname = nickname;
+	var valid = validator.isAlphanumeric(nickname);
+
+	if (valid) {
+		if (nickname !== undefined && nickname.length > 2 && nickname.length < 13) {
+			if (claimedNicknames.indexOf(nickname) === -1) {
+				var index = claimedNicknames.indexOf(socket.nickname);
+				if (index !== -1)
+					claimedNicknames.splice(index, 1);
+				claimedNicknames.push(nickname);
+				io.sockets.emit('chatMessage', { message: socket.nickname + ' has changed their name to ' + nickname + '.'});
+				socket.nickname = nickname;
+			} else {
+				socket.emit('chatMessage', { message: 'That name has already been claimed.'});
+			}
+		} else if (nickname.length < 2) {
+			socket.emit('chatMessage', { message: 'That nickname is too short.'});
+		} else if (nickname.length > 13) {
+			socket.emit('chatMessage', { message: 'That nickname is too long.'});
 		} else {
-			socket.emit('chatMessage', { message: 'That name has already been claimed.'});
+			socket.emit('chatMessage', { message: 'Invalid command. Usage: /nick {nickname}'});
 		}
-	} else if (nickname.length < 2) {
-		socket.emit('chatMessage', { message: 'That nickname is too short.'});
-	} else if (nickname.length > 13) {
-		socket.emit('chatMessage', { message: 'That nickname is too long.'});
 	} else {
-		socket.emit('chatMessage', { message: 'Invalid command. Usage: /nick {nickname}'});
+		socket.emit('chatMessage', { message: 'Nickname may only contain letters and numbers.'});
 	}
 }
 
@@ -276,6 +283,8 @@ io.sockets.on('connection', function (socket) {
 	});
 
 	socket.on('chatMessage', function (data) {
+		data.message = validator.escape(data.message);
+
 		if (data.message.length) {
 			if (data.message.substring(0, 1) !== '/') {
 				if (Date.now() - socket.lastMsgTime > 500) {

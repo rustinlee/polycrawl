@@ -13,7 +13,8 @@
 		"express": "4.9.x",
 		"jade": "1.6.x",
 		"socket.io": "1.1.x",
-		"underscore": "1.7.x"
+		"underscore": "1.7.x",
+		"validator": "3.18.x"
 	},
 	"scripts": {
     	"postinstall": "bower-installer"
