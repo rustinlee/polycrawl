@@ -239,7 +239,7 @@ var dungeon = generateDungeon(mapSize);
 var claimedNicknames = [];
 
 function changeNickname (socket, nickname) {
-	if (nickname !== undefined && nickname.length > 2) {
+	if (nickname !== undefined && nickname.length > 2 && nickname.length < 13) {
 		if (claimedNicknames.indexOf(nickname) === -1) {
 			var index = claimedNicknames.indexOf(socket.nickname);
 			if (index !== -1)
@@ -250,8 +250,12 @@ function changeNickname (socket, nickname) {
 		} else {
 			socket.emit('chatMessage', { message: 'That name has already been claimed.'});
 		}
+	} else if (nickname.length < 2) {
+		socket.emit('chatMessage', { message: 'That nickname is too short.'});
+	} else if (nickname.length > 13) {
+		socket.emit('chatMessage', { message: 'That nickname is too long.'});
 	} else {
-		socket.emit('chatMessage', { message: 'That nickname is too short. '});
+		socket.emit('chatMessage', { message: 'Invalid command. Usage: /nick {nickname}'});
 	}
 }
 
