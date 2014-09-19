@@ -32,8 +32,9 @@ function createArray(length) {
 
 var creatureID = 0;
 
-function Creature(symbol, x, y) {
+function Creature(symbol, x, y, color) {
 	this.symbol = symbol;
+	this.color =  color || [255, 255, 255];
 	this.x = x;
 	this.y = y;
 	this.id = creatureID;
@@ -269,7 +270,8 @@ function changeNickname (socket, nickname) {
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
-	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y);
+	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
+	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('levelData', [dungeon]);
@@ -288,7 +290,8 @@ io.sockets.on('connection', function (socket) {
 		if (data.message.length) {
 			if (data.message.substring(0, 1) !== '/') {
 				if (Date.now() - socket.lastMsgTime > 500) {
-					data.nickname = socket.nickname;
+					var rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
+					data.nickname = '<span style="color: rgb(' + rgb + ')">' + socket.nickname + '</span>';
 					io.sockets.emit('chatMessage', data);
 
 					socket.lastMsgTime = Date.now();

@@ -12,7 +12,7 @@ function drawMap(position){
 	renderEng.update(position.x, position.y);
 	for (var i = 0; i < currentLevel.gameEntities.length; i++) {
 		var entity = currentLevel.gameEntities[i];
-		term.put(AT, entity.x - position.x + term.cx, entity.y - position.y + term.cy); //draws every entity as an @ for now
+		term.put(entity.tile, entity.x - position.x + term.cx, entity.y - position.y + term.cy);
 	}
 	term.render();
 }
@@ -206,6 +206,15 @@ $(document).ready(function() {
 		currentLevel = data[0];
 		if(data.length > 1)
 			playerPos = data[1];
+
+		//todo: optimize this
+		for (var i = 0; i < currentLevel.gameEntities.length; i++) {
+			var entity = currentLevel.gameEntities[i];
+			if (entity.tile === undefined) {
+				entity.tile = new ut.Tile(entity.symbol, entity.color[0], entity.color[1], entity.color[2]);
+			}
+		}
+
 		drawMap(playerPos);
 	});
 });
