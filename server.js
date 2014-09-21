@@ -274,14 +274,14 @@ io.sockets.on('connection', function (socket) {
 	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
-	socket.broadcast.emit('levelData', [dungeon]);
+	socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
-		socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
-		socket.broadcast.emit('levelData', [dungeon]);
+		socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
+		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 	});
 
 	socket.on('chatMessage', function (data) {
@@ -316,6 +316,6 @@ io.sockets.on('connection', function (socket) {
 		dungeon.gameEntities = _und.reject(dungeon.gameEntities, function(el) {
 			return el.id === socket.game_player.id;
 		});
-		socket.broadcast.emit('levelData', [dungeon]);
+		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 	});
 });

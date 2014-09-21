@@ -217,4 +217,20 @@ $(document).ready(function() {
 
 		drawMap(playerPos);
 	});
+
+	socket.on('entitiesData', function (data) {
+		currentLevel.gameEntities = data[0];
+		if(data.length > 1)
+			playerPos = data[1];
+
+		//todo: optimize this
+		for (var i = 0; i < currentLevel.gameEntities.length; i++) {
+			var entity = currentLevel.gameEntities[i];
+			if (entity.tile === undefined) {
+				entity.tile = new ut.Tile(entity.symbol, entity.color[0], entity.color[1], entity.color[2]);
+			}
+		}
+
+		drawMap(playerPos);
+	});
 });
