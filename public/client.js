@@ -139,12 +139,20 @@ $(document).ready(function() {
 
 	var chatFocused = false;
 
-	$('#chat-input').focusin(function() {
+	$('#chat-input').on('focusout', function() {
+		chatFocused = false;
+	});
+
+	$('#game').on('click', function() {
+		chatFocused = false;
+	});
+
+	$('#msg-log').on('click', function() {
 		chatFocused = true;
 	});
 
-	$('#chat-input').focusout(function() {
-		chatFocused = false;
+	$('#chat-input').on('focusin', function() {
+		chatFocused = true;
 	});
 
 	$(window).keydown(function(data) {
