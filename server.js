@@ -250,7 +250,7 @@ function changeNickname (socket, nickname) {
 				if (index !== -1)
 					claimedNicknames.splice(index, 1);
 				claimedNicknames.push(nickname);
-				io.sockets.emit('chatMessage', { message: socket.nickname + ' has changed their name to ' + nickname + '.'});
+				io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has changed their name to <span style="color: rgb(' + socket.rgb + ')">' + nickname + '</span>.'});
 				socket.nickname = nickname;
 			} else {
 				socket.emit('chatMessage', { message: 'That name has already been claimed.'});
@@ -271,12 +271,15 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
+	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
 	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
+
+	io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has connected.' });
 
 	socket.on('moveCommand', function (data) {
 		socket.game_player.move(data.x, data.y, dungeon.mapData);
@@ -290,8 +293,7 @@ io.sockets.on('connection', function (socket) {
 		if (data.message.length) {
 			if (data.message.substring(0, 1) !== '/') {
 				if (Date.now() - socket.lastMsgTime > 500) {
-					var rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-					data.nickname = '<span style="color: rgb(' + rgb + ')">' + socket.nickname + '</span>';
+					data.nickname = '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span>';
 					io.sockets.emit('chatMessage', data);
 
 					socket.lastMsgTime = Date.now();
@@ -317,5 +319,6 @@ io.sockets.on('connection', function (socket) {
 			return el.id === socket.game_player.id;
 		});
 		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+		io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has disconnected.' });
 	});
 });
