@@ -6,15 +6,12 @@
 		"Keypress": "2.0.3",
 		"unicodetiles.js": "tapio/unicodetiles.js"
 	},
-	"install": {
-		"path": "public/components",
-		"sources": {
-			"jquery": [
-				"bower_components/jquery/dist/jquery.min.js",
-				"bower_components/jquery/dist/jquery.min.map"
-			],
-			"Keypress": "bower_components/Keypress/keypress-2.0.3.min.js",
-			"unicodetiles.js": "bower_components/unicodetiles.js/unicodetiles/*"
+	"overrides": {
+		"unicodetiles.js": {
+			"main": [
+				"unicodetiles/*.js",
+				"unicodetiles/*.css"
+			]
 		}
 	},
 	"private": true

@@ -12,6 +12,7 @@ pids
 logs
 results
 build
+dist
 .grunt
 
 node_modules
