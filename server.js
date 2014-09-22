@@ -18,6 +18,19 @@ app.use(express.static(__dirname + '/public'));
 global.io = require('socket.io').listen(app.listen(port));
 console.log("Listening on port " + port);
 
+function randomString(len, charSet) {
+    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var randomString = '';
+    for (var i = 0; i < len; i++) {
+    	var randomPoz = Math.floor(Math.random() * charSet.length);
+    	randomString += charSet.substring(randomPoz,randomPoz+1);
+    }
+    return randomString;
+}
+
+var adminPass = randomString(5);
+console.log("Admin commands passcode: " + adminPass);
+
 function createArray(length) {
 	var arr = new Array(length || 0),
 		i = length;
@@ -267,6 +280,20 @@ function changeNickname (socket, nickname) {
 	}
 }
 
+function checkAdminPass (socket, pass) {
+	if (socket.isAdmin) {
+		socket.emit('chatMessage', { message: 'You are already authenticated as an admin.'});
+		return;
+	}
+
+	if (pass === adminPass) {
+		socket.emit('chatMessage', { message: 'Authentication code accepted, admin rights granted.'});
+		socket.isAdmin = true;
+	} else {
+		socket.emit('chatMessage', { message: 'Authentication code incorrect. There will probably be repercussions for this in the future.'});
+	}
+}
+
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
@@ -306,6 +333,9 @@ io.sockets.on('connection', function (socket) {
 					case '/nickname':
 					case '/nick':
 						changeNickname(socket, cmd[1]);
+						break;
+					case '/auth':
+						checkAdminPass(socket, cmd[1]);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
