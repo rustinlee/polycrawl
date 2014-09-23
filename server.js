@@ -340,9 +340,11 @@ io.sockets.on('connection', function (socket) {
 	io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has connected.' });
 
 	socket.on('moveCommand', function (data) {
-		socket.game_player.move(data.x, data.y, dungeon.mapData);
-		socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
-		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+		if (Math.abs(data.x) + Math.abs(data.y) === 1) {
+			socket.game_player.move(data.x, data.y, dungeon.mapData);
+			socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
+			socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+		}
 	});
 
 	socket.on('chatMessage', function (data) {
