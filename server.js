@@ -294,6 +294,37 @@ function checkAdminPass (socket, pass) {
 	}
 }
 
+function positionCommand (socket, dungeon, cmd) {
+	if (!socket.isAdmin) {
+		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+		return;
+	}
+
+	if (cmd.length === 3) {
+		var outOfBoundsX = cmd[1] < 0 || cmd[1] > dungeon.mapData.length;
+		var outOfBoundsY = cmd[2] < 0 || cmd[2] > dungeon.mapData[0].length;
+		var outOfBounds = outOfBoundsX || outOfBoundsY;
+		if (outOfBounds) {
+			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.'});
+		} else {
+			var tile = dungeon.mapData[cmd[1]][cmd[2]];
+			if (tile === '#' || tile === ' ') {
+				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.'});
+			} else {
+				socket.game_player.x = cmd[1];
+				socket.game_player.y = cmd[2];
+				socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+				socket.emit('chatMessage', { message: 'Position changed to (' + socket.game_player.x + ', ' + socket.game_player.y + ').'});
+			}
+		}
+	} else if (cmd.length === 1) {
+		socket.emit('chatMessage', { message: 'Current position is (' + socket.game_player.x + ', ' + socket.game_player.y + ').'});
+	} else {
+		socket.emit('chatMessage', { message: 'Usage: /pos {x} {y}'});
+	}
+}
+
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
@@ -336,6 +367,10 @@ io.sockets.on('connection', function (socket) {
 						break;
 					case '/auth':
 						checkAdminPass(socket, cmd[1]);
+						break;
+					case '/position':
+					case '/pos':
+						positionCommand(socket, dungeon, cmd);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
