@@ -301,18 +301,20 @@ function positionCommand (socket, dungeon, cmd) {
 	}
 
 	if (cmd.length === 3) {
-		var outOfBoundsX = cmd[1] < 0 || cmd[1] > dungeon.mapData.length;
-		var outOfBoundsY = cmd[2] < 0 || cmd[2] > dungeon.mapData[0].length;
+		var x = parseInt(cmd[1]);
+		var y = parseInt(cmd[2]);
+		var outOfBoundsX = x < 0 || x > dungeon.mapData.length;
+		var outOfBoundsY = y < 0 || y > dungeon.mapData[0].length;
 		var outOfBounds = outOfBoundsX || outOfBoundsY;
 		if (outOfBounds) {
 			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.'});
 		} else {
-			var tile = dungeon.mapData[cmd[1]][cmd[2]];
+			var tile = dungeon.mapData[x][y];
 			if (tile === '#' || tile === ' ') {
 				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.'});
 			} else {
-				socket.game_player.x = cmd[1];
-				socket.game_player.y = cmd[2];
+				socket.game_player.x = x;
+				socket.game_player.y = y;
 				socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
 				socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 				socket.emit('chatMessage', { message: 'Position changed to (' + socket.game_player.x + ', ' + socket.game_player.y + ').'});
