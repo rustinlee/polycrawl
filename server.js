@@ -294,6 +294,22 @@ function checkAdminPass (socket, pass) {
 	}
 }
 
+function validatePosition (x, y, mapData) {
+	var results = {};
+
+	var outOfBoundsX = x < 0 || x > mapData.length;
+	var outOfBoundsY = y < 0 || y > mapData[0].length;
+	results.outOfBounds = outOfBoundsX || outOfBoundsY;
+
+	if (!results.outOfBounds) {
+		results.isWalkable = mapData[x][y] !== '#' && mapData[x][y] !== ' '; //would like to move this to something more configurable later
+	} else {
+		results.isWalkable = false;
+	}
+
+	return results;
+}
+
 function positionCommand (socket, dungeon, cmd) {
 	if (!socket.isAdmin) {
 		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
@@ -303,14 +319,11 @@ function positionCommand (socket, dungeon, cmd) {
 	if (cmd.length === 3) {
 		var x = parseInt(cmd[1]);
 		var y = parseInt(cmd[2]);
-		var outOfBoundsX = x < 0 || x > dungeon.mapData.length;
-		var outOfBoundsY = y < 0 || y > dungeon.mapData[0].length;
-		var outOfBounds = outOfBoundsX || outOfBoundsY;
-		if (outOfBounds) {
+		var validationResults = validatePosition(x, y, dungeon.mapData);
+		if (validationResults.outOfBounds) {
 			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.'});
 		} else {
-			var tile = dungeon.mapData[x][y];
-			if (tile === '#' || tile === ' ') {
+			if (!validationResults.isWalkable) {
 				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.'});
 			} else {
 				socket.game_player.x = x;
