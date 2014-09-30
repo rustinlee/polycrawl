@@ -310,6 +310,36 @@ function validatePosition (x, y, mapData) {
 	return results;
 }
 
+function getCreaturesAtPosition (x, y, level) {
+	var a = _und.filter(level.gameEntities, function(entity) {
+		var matchesX = entity.x === parseInt(x);
+		var matchesY = entity.y === parseInt(y);
+		return (matchesX && matchesY);
+	});
+
+	return a;
+}
+
+function getCreaturesAtPositionCommand (socket, x, y, level) {
+	if (!socket.isAdmin) {
+		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+		return;
+	}
+
+	var validationResults = validatePosition(x, y, level.mapData);
+
+	if (validationResults.outOfBounds) {
+		socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.' });
+	} else {
+		if (!validationResults.isWalkable) {
+			socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
+		} else {
+			var creatures = getCreaturesAtPosition(x, y, level);
+			socket.emit('chatMessage', { message: JSON.stringify(creatures) });
+		}
+	}
+}
+
 function positionCommand (socket, dungeon, cmd) {
 	if (!socket.isAdmin) {
 		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
@@ -388,6 +418,9 @@ io.sockets.on('connection', function (socket) {
 					case '/position':
 					case '/pos':
 						positionCommand(socket, dungeon, cmd);
+						break;
+					case '/findat':
+						getCreaturesAtPositionCommand(socket, cmd[1], cmd[2], dungeon);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
