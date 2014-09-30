@@ -320,23 +320,27 @@ function getCreaturesAtPosition (x, y, level) {
 	return a;
 }
 
-function getCreaturesAtPositionCommand (socket, x, y, level) {
+function getCreaturesAtPositionCommand (socket, cmd, level) {
 	if (!socket.isAdmin) {
 		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
 		return;
 	}
 
-	var validationResults = validatePosition(x, y, level.mapData);
+	if (cmd.length === 3 && parseInt(cmd[1]) !== NaN && parseInt(cmd[2]) !== NaN) {
+		var validationResults = validatePosition(x, y, level.mapData);
 
-	if (validationResults.outOfBounds) {
-		socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.' });
-	} else {
-		if (!validationResults.isWalkable) {
-			socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
+		if (validationResults.outOfBounds) {
+			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.' });
 		} else {
-			var creatures = getCreaturesAtPosition(x, y, level);
-			socket.emit('chatMessage', { message: JSON.stringify(creatures) });
+			if (!validationResults.isWalkable) {
+				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
+			} else {
+				var creatures = getCreaturesAtPosition(x, y, level);
+				socket.emit('chatMessage', { message: JSON.stringify(creatures) });
+			}
 		}
+	} else {
+		socket.emit('chatMessage', { message: 'Usage: /findat {x} {y}'});
 	}
 }
 
@@ -346,7 +350,7 @@ function positionCommand (socket, dungeon, cmd) {
 		return;
 	}
 
-	if (cmd.length === 3) {
+	if (cmd.length === 3 && !isNaN(parseInt(cmd[1])) && !isNaN(parseInt(cmd[2]))) {
 		var x = parseInt(cmd[1]);
 		var y = parseInt(cmd[2]);
 		var validationResults = validatePosition(x, y, dungeon.mapData);
@@ -420,7 +424,7 @@ io.sockets.on('connection', function (socket) {
 						positionCommand(socket, dungeon, cmd);
 						break;
 					case '/findat':
-						getCreaturesAtPositionCommand(socket, cmd[1], cmd[2], dungeon);
+						getCreaturesAtPositionCommand(socket, cmd, dungeon);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
