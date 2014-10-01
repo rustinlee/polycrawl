@@ -86,7 +86,6 @@ function Creature(symbol, x, y, color, socketID) {
 		var targetY = this.y + y;
 		if (level.mapData[targetX][targetY] !== '#') {
 			var creaturesAtPosition = getCreaturesAtPosition(targetX, targetY, level);
-			console.log(creaturesAtPosition);
 			if (creaturesAtPosition.length === 0) {
 				this.x += x;
 				this.y += y;
@@ -157,11 +156,9 @@ function generateDungeon(size) {
 			var duplicate = false;
 
 			while (searching) {
-				//console.log('checking to see if (' + currentPoint.x + ',' + currentPoint.y + ') is equal to points[' + j + '] (' + points[j].x + ',' + points[j].y + ')');
 				if (currentPoint.isEqual(points[j])) {
 					duplicate = true;
 					searching = false;
-					//console.log('(' + currentPoint.x + ',' + currentPoint.y + ') is equal to points[' + j + '] (' + points[j].x + ',' + points[j].y + ')');
 					j = 0;
 				}
 
@@ -172,7 +169,6 @@ function generateDungeon(size) {
 					generatingUniquePoint = false;
 					j = 0;
 					k = 0;
-					//console.log('reached end of current points array and (' + currentPoint.x + ',' + currentPoint.y + ') is unique');
 				}
 			}
 
@@ -181,7 +177,6 @@ function generateDungeon(size) {
 			}
 		}
 	}
-	//console.log(points);
 
 	//find range and domain
 	var lowestX = 0;
@@ -200,12 +195,7 @@ function generateDungeon(size) {
 		} else if (points[i].y > greatestY) {
 			greatestY = points[i].y;
 		}
-
-		//console.log('currently on #' + i + ' for range calculations');
 	}
-
-	//console.log('lowest x and y: ' + lowestX + ' ' + lowestY);
-	//console.log('highest x and y: ' + greatestX + ' ' + greatestY);
 
 	//shift values so lowest value is 0
 	for (i = 0; i < points.length; i++) {
@@ -214,8 +204,6 @@ function generateDungeon(size) {
 
 	var domain = greatestX + Math.abs(lowestX);
 	var range = greatestY + Math.abs(lowestY);
-	//console.log('domain : ' + domain);
-	//console.log('range : ' + range);
 
 	//generate a blank map
 	var mapArray = [];
@@ -286,7 +274,6 @@ function generateDungeon(size) {
 
 var mapSize = 2500; //number of walkable tiles in the final map
 var dungeon = generateDungeon(mapSize);
-//console.log(dungeon);
 
 var claimedNicknames = [];
 
