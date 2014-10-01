@@ -60,11 +60,11 @@ gulp.task('writeFonts', ['clean'], function () {
 		.pipe(gulp.dest('public/dist/styles'))
 });
 
+gulp.task('no-watch', ['test', 'compileJS', 'compileCSS', 'writeFonts']);
+
 gulp.task('watch', function() {
-  gulp.watch(paths.scripts, ['compileJS']);
-  gulp.watch(paths.css, ['compileCSS']);
+  gulp.watch(paths.scripts, ['no-watch']);
+  gulp.watch(paths.css, ['no-watch']);
 });
 
-
-gulp.task('no-watch', ['test', 'compileJS', 'compileCSS', 'writeFonts']);
 gulp.task('default', ['no-watch', 'watch']);
