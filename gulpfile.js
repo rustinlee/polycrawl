@@ -61,7 +61,8 @@ gulp.task('writeFonts', ['clean'], function () {
 });
 
 gulp.task('watch', function() {
-  gulp.watch(paths.scripts, ['compile']);
+  gulp.watch(paths.scripts, ['compileJS']);
+  gulp.watch(paths.css, ['compileCSS']);
 });
 
 
