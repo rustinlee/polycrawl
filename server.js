@@ -43,9 +43,24 @@ function createArray(length) {
 	return arr;
 }
 
+function simulateCombat (aggressor, target, level, aggressorSocketID, targetSocketID) {
+	//very simple placeholder calculations
+	var dmg = aggressor.atk
+	target.HP -= dmg;
+	io.sockets.emit('entitiesData', [level.gameEntities]);
+
+	if (aggressorSocketID) {
+		io.sockets.connected[aggressorSocketID].emit('chatMessage', { message: 'You have dealt ' + dmg + ' damage.' });
+	}
+
+	if (targetSocketID) {
+		io.sockets.connected[targetSocketID].emit('chatMessage', { message: 'You have received ' + dmg + ' damage.' });
+	}
+}
+
 var creatureID = 0;
 
-function Creature(symbol, x, y, color) {
+function Creature(symbol, x, y, color, socketID) {
 	this.symbol = symbol;
 	this.color =  color || [255, 255, 255];
 	this.x = x;
@@ -53,10 +68,29 @@ function Creature(symbol, x, y, color) {
 	this.id = creatureID;
 	creatureID++;
 
-	this.move = function(x, y, mapData) {
-		if (mapData[this.x + x][this.y + y] !== '#') {
-			this.x += x;
-			this.y += y;
+	if (socketID) {
+		this.socketID = socketID;
+	} else {
+		this.socketID = null;
+	}
+
+	this.maxHP = 10;
+	this.HP = 10;
+	this.atk = 1;
+
+	this.move = function(x, y, level) {
+		var targetX = this.x + x;
+		var targetY = this.y + y;
+		if (level.mapData[targetX][targetY] !== '#') {
+			var creaturesAtPosition = getCreaturesAtPosition(targetX, targetY, level);
+			console.log(creaturesAtPosition);
+			if (creaturesAtPosition.length === 0) {
+				this.x += x;
+				this.y += y;
+			} else {
+				var targetSocketID = creaturesAtPosition[0].socketID;
+				simulateCombat(this, creaturesAtPosition[0], level, this.socketID, targetSocketID);
+			}
 		}
 	};
 }
@@ -379,7 +413,7 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color);
+	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color, socket.id);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
@@ -390,7 +424,7 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('moveCommand', function (data) {
 		if (Math.abs(data.x) + Math.abs(data.y) === 1) {
-			socket.game_player.move(data.x, data.y, dungeon.mapData);
+			socket.game_player.move(data.x, data.y, dungeon);
 			socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
 			socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 		}
