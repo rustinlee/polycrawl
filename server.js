@@ -47,7 +47,6 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	//very simple placeholder calculations
 	var dmg = aggressor.atk
 	target.HP -= dmg;
-	io.sockets.emit('entitiesData', [level.gameEntities]);
 
 	if (aggressorSocketID) {
 		var aggressorSocket = io.sockets.connected[aggressorSocketID];
@@ -59,6 +58,21 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 		targetSocket.emit('chatMessage', { message: 'You have received ' + dmg + ' damage.' });
 		targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
 	}
+
+	if (target.HP <= 0) {
+		level.gameEntities = _und.reject(level.gameEntities, function (creature) {
+			return creature.id === target.id;
+		});
+
+		if (targetSocket) { //respawn creature if a player is controlling it
+			targetSocket.emit('chatMessage', { message: 'You have died!' });
+			targetSocket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
+			level.gameEntities.push(targetSocket.game_player);
+			targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
+		}
+	}
+
+	io.sockets.emit('entitiesData', [level.gameEntities]);
 }
 
 var creatureID = 0;
