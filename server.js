@@ -50,11 +50,14 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	io.sockets.emit('entitiesData', [level.gameEntities]);
 
 	if (aggressorSocketID) {
-		io.sockets.connected[aggressorSocketID].emit('chatMessage', { message: 'You have dealt ' + dmg + ' damage.' });
+		var aggressorSocket = io.sockets.connected[aggressorSocketID];
+		aggressorSocket.emit('chatMessage', { message: 'You have dealt ' + dmg + ' damage.' });
 	}
 
 	if (targetSocketID) {
-		io.sockets.connected[targetSocketID].emit('chatMessage', { message: 'You have received ' + dmg + ' damage.' });
+		var targetSocket = io.sockets.connected[targetSocketID];
+		targetSocket.emit('chatMessage', { message: 'You have received ' + dmg + ' damage.' });
+		targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
 	}
 }
 

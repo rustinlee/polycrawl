@@ -132,6 +132,7 @@ $(document).ready(function() {
 	var socket = io.connect('http://'+location.host);
 
 	var termElement = $('#game')[0];
+	var hpBar = $('#hp-bar-inner');
 
 	waitForWebfonts(['DejaVuSansMono'], function() {
 		onWindowResize();
@@ -240,5 +241,9 @@ $(document).ready(function() {
 		}
 
 		drawMap(playerPos);
+	});
+
+	socket.on('hpBarUpdate', function (data) {
+		hpBar.css('width', data + '%');
 	});
 });
