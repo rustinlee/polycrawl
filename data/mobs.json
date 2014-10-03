@@ -1,0 +1,127 @@
+{
+	"human": {
+		"fullName": "Human",
+		"symbol": "@", //ASCII symbol the creature is represented by
+		"stats": { //base stats at level 1
+			"con": 5, //how much HP gained per level, will do more later on
+			"str": 3 //damage dealt by physical attacks
+		},
+		"statGrowth": { //how much stats increase by per level (will incorporate randomness later)
+			"con": 2,
+			"str": 2
+		},
+		"limbs": [
+			{
+				"name": "head",
+				"size": 0.25, //4x harder to hit than largest limb
+				"hpValue": 1, //can receive up to 100% of the creature's total HP
+				"dmgMult": 1.5, //receives 1.5x the normal damage amount
+				"manipulator": false, //is not a manipulator and cannot be used to wield things (hands)
+				"locomotor": false //is not a locomotor and cannot be used to move (legs)
+			},
+			{
+				"name": "torso",
+				"size": 1,
+				"hpValue": 1,
+				"dmgMult": 1.1,
+				"manipulator": false,
+				"locomotor": false
+			},
+			{
+				"name": "left arm",
+				"size": 0.5,
+				"hpValue": 0.25,
+				"dmgMult": 1,
+				"manipulator": true,
+				"locomotor": false
+			},
+			{
+				"name": "right arm",
+				"size": 0.5,
+				"hpValue": 0.25,
+				"dmgMult": 1,
+				"manipulator": true,
+				"locomotor": false
+			},
+			{
+				"name": "left leg",
+				"size": 0.6,
+				"hpValue": 0.3,
+				"dmgMult": 1,
+				"manipulator": false,
+				"locomotor": true
+			},
+			{
+				"name": "right leg",
+				"size": 0.6,
+				"hpValue": 0.3,
+				"dmgMult": 1,
+				"manipulator": false,
+				"locomotor": true
+			}
+		]
+	},
+
+	"skeleton": {
+		"fullName": "Skeleton",
+		"symbol": "S",
+		"stats": {
+			"con": 3,
+			"str": 2
+		},
+		"statGrowth": {
+			"con": 1,
+			"str": 1
+		},
+		"limbs": [
+			{
+				"name": "head",
+				"size": 0.25, //4x harder to hit than largest limb, same size as a human head obviously
+				"hpValue": 0.25, //unlike humans, skeletons can only take 25% of their total HP as damage to their head before it stops hurting them. spooky!
+				"dmgMult": 1, //skeletons' heads are also not especially vital
+				"manipulator": false, //but like humans, they cannot pick up things with their head
+				"locomotor": false //nor can they walk around with their head
+			},
+			{
+				"name": "torso",
+				"size": 1,
+				"hpValue": 1,
+				"dmgMult": 1.1,
+				"manipulator": false,
+				"locomotor": false
+			},
+			{
+				"name": "left arm",
+				"size": 0.5,
+				"hpValue": 0.25,
+				"dmgMult": 1,
+				"manipulator": true,
+				"locomotor": false
+			},
+			{
+				"name": "right arm",
+				"size": 0.5,
+				"hpValue": 0.25,
+				"dmgMult": 1,
+				"manipulator": true,
+				"locomotor": false
+			},
+			{
+				"name": "left leg",
+				"size": 0.6,
+				"hpValue": 0.3,
+				"dmgMult": 1,
+				"manipulator": false,
+				"locomotor": true
+			},
+			{
+				"name": "right leg",
+				"size": 0.6,
+				"hpValue": 0.3,
+				"dmgMult": 1,
+				"manipulator": false,
+				"locomotor": true
+			}
+		]
+	}
+}

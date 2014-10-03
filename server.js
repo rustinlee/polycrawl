@@ -1,6 +1,8 @@
 var express = require("express");
 var _und = require('underscore');
 var validator = require('validator');
+var stripJsonComments = require('strip-json-comments');
+var fs = require('fs');
 var app = express();
 var port = process.env.PORT || 8080;
 
@@ -45,17 +47,31 @@ function createArray(length) {
 
 function simulateCombat (aggressor, target, level, aggressorSocketID, targetSocketID) {
 	//very simple placeholder calculations
-	var dmg = aggressor.atk
+	var dmg = aggressor.atk;
 	target.HP -= dmg;
 
 	if (aggressorSocketID) {
+		var targetNameStr;
+		if (targetSocketID) {
+			targetNameStr = '<span style="color: rgb(' + io.sockets.connected[targetSocketID].rgb + ')">' + io.sockets.connected[targetSocketID].nickname + '</span>';
+		} else {
+			targetNameStr = 'the ' + target.fullName.toLowerCase();
+		}
+
 		var aggressorSocket = io.sockets.connected[aggressorSocketID];
-		aggressorSocket.emit('chatMessage', { message: 'You have dealt ' + dmg + ' damage.' });
+		aggressorSocket.emit('chatMessage', { message: 'You have hit ' +  targetNameStr + ' for ' + dmg + ' damage.'});
 	}
 
 	if (targetSocketID) {
+		var aggressorNameStr;
+		if (aggressorSocketID) {
+			aggressorNameStr = '<span style="color: rgb(' + io.sockets.connected[aggressorSocketID].rgb + ')">' + io.sockets.connected[aggressorSocketID].nickname + '</span>';
+		} else {
+			aggressorNameStr = 'The ' + aggressor.fullName.toLowerCase();
+		}
+
 		var targetSocket = io.sockets.connected[targetSocketID];
-		targetSocket.emit('chatMessage', { message: 'You have received ' + dmg + ' damage.' });
+		targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has hit you for ' + dmg + ' damage.' });
 		targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
 	}
 
@@ -66,7 +82,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 
 		if (targetSocket) { //respawn creature if a player is controlling it
 			targetSocket.emit('chatMessage', { message: 'You have died!' });
-			targetSocket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
+			targetSocket.game_player = new Creature(mobDefinitions['human'], playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
 			level.gameEntities.push(targetSocket.game_player);
 			targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
 		}
@@ -75,10 +91,13 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	io.sockets.emit('entitiesData', [level.gameEntities]);
 }
 
+var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
+
 var creatureID = 0;
 
-function Creature(symbol, x, y, color, socketID) {
-	this.symbol = symbol;
+function Creature(template, x, y, color, socketID) {
+	this.fullName = template.fullName;
+	this.symbol = template.symbol;
 	this.color =  color || [255, 255, 255];
 	this.x = x;
 	this.y = y;
@@ -91,9 +110,14 @@ function Creature(symbol, x, y, color, socketID) {
 		this.socketID = null;
 	}
 
-	this.maxHP = 10;
-	this.HP = 10;
-	this.atk = 1;
+	this.con = template.stats.con;
+	this.str = template.stats.str;
+
+	this.maxHP = this.con * 10;
+	this.HP = this.maxHP;
+	this.atk = this.str;
+
+	this.limbs = template.limbs;
 
 	this.move = function(x, y, level) {
 		var targetX = this.x + x;
@@ -417,7 +441,7 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = new Creature('@', playerSpawn.x, playerSpawn.y, socket.color, socket.id);
+	socket.game_player = new Creature(mobDefinitions['human'], playerSpawn.x, playerSpawn.y, socket.color, socket.id);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
