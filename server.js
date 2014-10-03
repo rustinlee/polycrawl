@@ -356,6 +356,15 @@ function checkAdminPass (socket, pass) {
 	}
 }
 
+function verifyAdminPermissions (socket) {
+	if (!socket.isAdmin) {
+		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+		return false;
+	}
+
+	return true;
+}
+
 function validatePosition (x, y, mapData) {
 	var results = {};
 
@@ -383,8 +392,7 @@ function getCreaturesAtPosition (x, y, level) {
 }
 
 function getCreaturesAtPositionCommand (socket, cmd, level) {
-	if (!socket.isAdmin) {
-		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
 
@@ -410,8 +418,7 @@ function getCreaturesAtPositionCommand (socket, cmd, level) {
 }
 
 function spawnCreature (socket, cmd, level) {
-	if (!socket.isAdmin) {
-		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
 
@@ -445,8 +452,7 @@ function spawnCreature (socket, cmd, level) {
 }
 
 function positionCommand (socket, dungeon, cmd) {
-	if (!socket.isAdmin) {
-		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
 
