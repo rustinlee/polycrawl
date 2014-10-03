@@ -388,7 +388,10 @@ function getCreaturesAtPositionCommand (socket, cmd, level) {
 		return;
 	}
 
-	if (cmd.length === 3 && parseInt(cmd[1]) !== NaN && parseInt(cmd[2]) !== NaN) {
+	var x = parseInt(cmd[1]);
+	var y = parseInt(cmd[2]);
+
+	if (cmd.length === 3 && x !== NaN && y !== NaN) {
 		var validationResults = validatePosition(x, y, level.mapData);
 
 		if (validationResults.outOfBounds) {
@@ -403,6 +406,41 @@ function getCreaturesAtPositionCommand (socket, cmd, level) {
 		}
 	} else {
 		socket.emit('chatMessage', { message: 'Usage: /findat {x} {y}'});
+	}
+}
+
+function spawnCreature (socket, cmd, level) {
+	if (!socket.isAdmin) {
+		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
+		return;
+	}
+
+	var x = parseInt(cmd[1]);
+	var y = parseInt(cmd[2]);
+
+	if (cmd.length === 4 && x !== NaN && y !== NaN) {
+		var validationResults = validatePosition(x, y, level.mapData);
+
+		if (validationResults.outOfBounds) {
+			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.' });
+		} else {
+			if (!validationResults.isWalkable) {
+				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
+			} else {
+				var template = mobDefinitions[cmd[3]];
+
+				if (template) {
+					var creature = new Creature(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
+					level.gameEntities.push(creature);
+					io.sockets.emit('entitiesData', [dungeon.gameEntities]);
+					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
+				} else {
+					socket.emit('chatMessage', { message: 'Creature type not recognized.' });
+				}
+			}
+		}
+	} else {
+		socket.emit('chatMessage', { message: 'Usage: /spawn {x} {y} {speciesName}'});
 	}
 }
 
@@ -487,6 +525,9 @@ io.sockets.on('connection', function (socket) {
 						break;
 					case '/findat':
 						getCreaturesAtPositionCommand(socket, cmd, dungeon);
+						break;
+					case '/spawn':
+						spawnCreature(socket, cmd, dungeon);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
