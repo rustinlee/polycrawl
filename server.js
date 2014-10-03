@@ -46,31 +46,35 @@ function createArray(length) {
 }
 
 function simulateCombat (aggressor, target, level, aggressorSocketID, targetSocketID) {
+	var aggressorSocket;
+	var aggressorNameStr;
+
+	if (aggressorSocketID) {
+		aggressorSocket = io.sockets.connected[aggressorSocketID];
+		aggressorNameStr = '<span style="color: rgb(' + aggressorSocket.rgb + ')">' + aggressorSocket.nickname + '</span>';
+	} else {
+		aggressorNameStr = aggressor.fullName.toLowerCase();
+	}
+
+	var targetSocket;
+	var targetNameStr;
+
+	if (targetSocketID) {
+		targetSocket = io.sockets.connected[targetSocketID];
+		targetNameStr = '<span style="color: rgb(' + targetSocket.rgb + ')">' + targetSocket.nickname + '</span>';
+	} else {
+		targetNameStr = target.fullName.toLowerCase();
+	}
+
 	//very simple placeholder calculations
 	var dmg = aggressor.atk;
 	target.HP -= dmg;
 
-	if (aggressorSocketID) {
-		var targetNameStr;
-		if (targetSocketID) {
-			targetNameStr = '<span style="color: rgb(' + io.sockets.connected[targetSocketID].rgb + ')">' + io.sockets.connected[targetSocketID].nickname + '</span>';
-		} else {
-			targetNameStr = 'the ' + target.fullName.toLowerCase();
-		}
-
-		var aggressorSocket = io.sockets.connected[aggressorSocketID];
+	if (aggressorSocket) {
 		aggressorSocket.emit('chatMessage', { message: 'You have hit ' +  targetNameStr + ' for ' + dmg + ' damage.'});
 	}
 
-	if (targetSocketID) {
-		var aggressorNameStr;
-		if (aggressorSocketID) {
-			aggressorNameStr = '<span style="color: rgb(' + io.sockets.connected[aggressorSocketID].rgb + ')">' + io.sockets.connected[aggressorSocketID].nickname + '</span>';
-		} else {
-			aggressorNameStr = 'The ' + aggressor.fullName.toLowerCase();
-		}
-
-		var targetSocket = io.sockets.connected[targetSocketID];
+	if (targetSocket) {
 		targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has hit you for ' + dmg + ' damage.' });
 		targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
 	}
