@@ -85,7 +85,6 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	dmg += Math.ceil((Math.random() * 0.2 - 0.1) * dmg); //add or remove 10% rounded up to give variety
 
 	var rollToHit = 1 / (1 + Math.pow(Math.E, -((target.agi / aggressor.dex) * 2 - 4))); //fancy sigmoid function
-	console.log(rollToHit);
 	var attackHit = (Math.random() >= rollToHit); //did the attack land
 
 	if (attackHit) {
@@ -93,7 +92,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 		var critted = Math.random() > 0.95; //luck stat will probably affect this later on
 
 		if (critted) {
-			dmg *= critModifier;
+			dmg = Math.ceil(dmg * critModifier);
 		}
 
 		target.HP -= dmg;
