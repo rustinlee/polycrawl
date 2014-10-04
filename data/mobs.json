@@ -3,12 +3,10 @@
 		"fullName": "Human",
 		"symbol": "@", //ASCII symbol the creature is represented by
 		"stats": { //base stats at level 1
-			"con": 5, //how much HP gained per level, will do more later on
-			"str": 3 //damage dealt by physical attacks
-		},
-		"statGrowth": { //how much stats increase by per level (will incorporate randomness later)
-			"con": 2,
-			"str": 2
+			"con": 8, //how much HP gained per level, will do more later on
+			"str": 9, //damage dealt by physical attacks
+			"dex": 10, //affects chance to hit and critical hit rate
+			"agi": 7 //affects chance to dodge and time between turns
 		},
 		"limbs": [
 			{
@@ -66,12 +64,10 @@
 		"fullName": "Skeleton",
 		"symbol": "S",
 		"stats": {
-			"con": 3,
-			"str": 2
-		},
-		"statGrowth": {
-			"con": 1,
-			"str": 1
+			"con": 6,
+			"str": 8,
+			"dex": 7,
+			"agi": 6
 		},
 		"limbs": [
 			{

@@ -45,52 +45,94 @@ function createArray(length) {
 	return arr;
 }
 
+/* decided not to incorporate this, but I may decide to use it later
+function getExplodingRoll () { //returns random number from 0 to infinity
+	var result = (Math.random() + Math.random()) / 2;
+	if (result > 0.85)
+		result += getExplodingRoll();
+	return result;
+}
+*/
+
 function simulateCombat (aggressor, target, level, aggressorSocketID, targetSocketID) {
 	var aggressorSocket;
 	var aggressorNameStr;
+	var aggressorNameStr_capitalized;
 
 	if (aggressorSocketID) {
 		aggressorSocket = io.sockets.connected[aggressorSocketID];
 		aggressorNameStr = '<span style="color: rgb(' + aggressorSocket.rgb + ')">' + aggressorSocket.nickname + '</span>';
+		aggressorNameStr_capitalized = aggressorNameStr;
 	} else {
-		aggressorNameStr = aggressor.fullName.toLowerCase();
+		aggressorNameStr = 'the ' + aggressor.fullName.toLowerCase();
+		aggressorNameStr_capitalized = aggressorNameStr;
 	}
 
 	var targetSocket;
 	var targetNameStr;
+	var targetNameStr_capitalized;
 
 	if (targetSocketID) {
 		targetSocket = io.sockets.connected[targetSocketID];
 		targetNameStr = '<span style="color: rgb(' + targetSocket.rgb + ')">' + targetSocket.nickname + '</span>';
 	} else {
-		targetNameStr = target.fullName.toLowerCase();
+		targetNameStr = 'the ' + target.fullName.toLowerCase();
 	}
 
 	//very simple placeholder calculations
-	var dmg = aggressor.atk;
-	target.HP -= dmg;
+	var dmg = aggressor.atk; //how much damage the attack can deal
 
-	if (aggressorSocket) {
-		aggressorSocket.emit('chatMessage', { message: 'You have hit ' +  targetNameStr + ' for ' + dmg + ' damage.'});
-	}
+	dmg += Math.ceil((Math.random() * 0.2 - 0.1) * dmg); //add or remove 10% rounded up to give variety
 
-	if (targetSocket) {
-		targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has hit you for ' + dmg + ' damage.' });
-		targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
-	}
+	var rollToHit = 1 / (1 + Math.pow(Math.E, -((target.agi / aggressor.dex) * 2 - 4))); //fancy sigmoid function
+	console.log(rollToHit);
+	var attackHit = (Math.random() >= rollToHit); //did the attack land
 
-	if (target.HP <= 0) {
-		level.gameEntities = _und.reject(level.gameEntities, function (creature) {
-			return creature.id === target.id;
-		});
+	if (attackHit) {
+		var critModifier = 1.5; //amount to modify damage if critical hit, should be determined by weapon
+		var critted = Math.random() > 0.95; //luck stat will probably affect this later on
 
-		if (targetSocket) { //respawn creature if a player is controlling it
-			targetSocket.emit('chatMessage', { message: 'You have died!' });
-			targetSocket.game_player = new Creature(mobDefinitions['human'], playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
-			level.gameEntities.push(targetSocket.game_player);
-			targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
+		if (critted) {
+			dmg *= critModifier;
+		}
+
+		target.HP -= dmg;
+
+		if (aggressorSocket) {
+			aggressorSocket.emit('chatMessage', { message: 'You have hit ' +  targetNameStr + ' for ' + dmg + ' damage.'});
+			if (critted)
+				aggressorSocket.emit('chatMessage', { message: 'Scored a critical hit!'});
+		}
+
+		if (targetSocket) {
+			targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has hit you for ' + dmg + ' damage.' });
+			targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
+			if (critted)
+				targetSocket.emit('chatMessage', { message: 'Struck by a critical hit!'});
+		}
+
+		if (target.HP <= 0) {
+			level.gameEntities = _und.reject(level.gameEntities, function (creature) {
+				return creature.id === target.id;
+			});
+
+			if (targetSocket) { //respawn creature if a player is controlling it
+				targetSocket.emit('chatMessage', { message: 'You have died!' });
+				targetSocket.game_player = new Creature(mobDefinitions['human'], playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
+				level.gameEntities.push(targetSocket.game_player);
+				targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
+			}
+		}
+	} else {
+		if (aggressorSocket) {
+			aggressorSocket.emit('chatMessage', { message: 'You missed ' +  targetNameStr + '.'});
+		}
+
+		if (targetSocket) {
+			targetSocket.emit('chatMessage', { message: aggressorNameStr + ' swung at you and missed.' });
 		}
 	}
+
 
 	io.sockets.emit('entitiesData', [level.gameEntities]);
 }
@@ -114,8 +156,11 @@ function Creature(template, x, y, color, socketID) {
 		this.socketID = null;
 	}
 
+	//maybe just replace this with the 1 stats object
 	this.con = template.stats.con;
 	this.str = template.stats.str;
+	this.dex = template.stats.dex;
+	this.agi = template.stats.agi;
 
 	this.maxHP = this.con * 10;
 	this.HP = this.maxHP;
