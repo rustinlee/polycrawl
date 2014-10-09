@@ -133,6 +133,7 @@ $(document).ready(function() {
 
 	var termElement = $('#game')[0];
 	var hpBar = $('#hp-bar-inner');
+	var apBar = $('#ap-bar-inner');
 
 	waitForWebfonts(['DejaVuSansMono'], function() {
 		onWindowResize();
@@ -246,4 +247,8 @@ $(document).ready(function() {
 	socket.on('hpBarUpdate', function (data) {
 		hpBar.css('width', data + '%');
 	});
+
+	socket.on('apBarUpdate', function (data) {
+		apBar.css('width', data + '%');
+	})
 });

@@ -132,8 +132,34 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 		}
 	}
 
-
 	io.sockets.emit('entitiesData', [level.gameEntities]);
+}
+
+function StoredTurn (type, data) {
+	this.turnType = type;
+	this.turnData = data;
+}
+
+function serverTick () {
+	_und.each(dungeon.gameEntities, function(creature) {
+		creature.AP++;
+
+		if (creature.AP > creature.reqAP) {
+			creature.AP = 0;
+
+			if (creature.socketID) { //if a player, execute stored turn
+				creature.executeStoredTurn();
+			} else {
+				//no computer controlled creature AI yet
+			}
+		}
+
+		if (creature.socketID) {
+			io.sockets.connected[creature.socketID].emit('apBarUpdate', (creature.AP / creature.reqAP) * 100);
+		}
+	});
+
+	setTimeout(serverTick, 100);
 }
 
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
@@ -155,17 +181,41 @@ function Creature(template, x, y, color, socketID) {
 		this.socketID = null;
 	}
 
+	//primary stats
 	//maybe just replace this with the 1 stats object
 	this.con = template.stats.con;
 	this.str = template.stats.str;
 	this.dex = template.stats.dex;
 	this.agi = template.stats.agi;
 
+	//secondary (derived) stats
 	this.maxHP = this.con * 10;
 	this.HP = this.maxHP;
 	this.atk = this.str;
+	this.reqAP = Math.floor(25 * (1 * Math.pow(this.agi*125*Math.E, (-this.agi/1250))));
+	this.AP = 0;
 
 	this.limbs = template.limbs;
+
+	var _storedTurn = {};
+
+	this.storeTurn = function(type, data) {
+		_storedTurn = new StoredTurn(type, data);
+	}
+
+	this.executeStoredTurn = function() {
+		if (_storedTurn.turnType === 'move') {
+			this.move(_storedTurn.turnData.x, _storedTurn.turnData.y, dungeon);
+
+			if (this.socketID) {
+				var socket = io.sockets.connected[this.socketID];
+				socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+			}
+		}
+
+		_storedTurn = {};
+	}
 
 	this.move = function(x, y, level) {
 		var targetX = this.x + x;
@@ -528,6 +578,8 @@ function positionCommand (socket, dungeon, cmd) {
 	}
 }
 
+serverTick();
+
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
@@ -544,9 +596,9 @@ io.sockets.on('connection', function (socket) {
 
 	socket.on('moveCommand', function (data) {
 		if (Math.abs(data.x) + Math.abs(data.y) === 1) {
-			socket.game_player.move(data.x, data.y, dungeon);
-			socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
-			socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+			socket.game_player.storeTurn('move', { x: data.x, y: data.y });
+			//socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
+			//socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 		}
 	});
 
