@@ -145,12 +145,16 @@ function serverTick () {
 		creature.AP++;
 
 		if (creature.AP > creature.reqAP) {
-			creature.AP = 0;
+			creature.AP = creature.reqAP;
 
 			if (creature.socketID) { //if a player, execute stored turn
-				creature.executeStoredTurn();
+				if (creature.hasStoredTurn()) {
+					creature.executeStoredTurn();
+					creature.AP = 0;
+				}
 			} else {
 				//no computer controlled creature AI yet
+				creature.AP = 0;
 			}
 		}
 
@@ -201,6 +205,10 @@ function Creature(template, x, y, color, socketID) {
 
 	this.storeTurn = function(type, data) {
 		_storedTurn = new StoredTurn(type, data);
+	}
+
+	this.hasStoredTurn = function() {
+		return !_und.isEmpty(_storedTurn);
 	}
 
 	this.executeStoredTurn = function() {
