@@ -4,7 +4,8 @@
 	"dependencies": {
 		"jquery": "1.11.x",
 		"Keypress": "2.0.3",
-		"unicodetiles.js": "tapio/unicodetiles.js"
+		"unicodetiles.js": "tapio/unicodetiles.js",
+		"FontLoader": "smnh/FontLoader"
 	},
 	"overrides": {
 		"unicodetiles.js": {
@@ -12,6 +13,9 @@
 				"unicodetiles/*.js",
 				"unicodetiles/*.css"
 			]
+		},
+		"FontLoader": {
+			"main": "FontLoader.js"
 		}
 	},
 	"private": true
