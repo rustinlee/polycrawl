@@ -7,6 +7,7 @@ var app = express();
 var port = process.env.PORT || 8080;
 
 //var game = require('./game');
+var TICKS_PER_SECOND = 30;
 
 app.set('views', __dirname + '/views');
 app.set('view engine', "jade");
@@ -167,7 +168,7 @@ function serverTick () {
 		}
 	});
 
-	setTimeout(serverTick, 100);
+	setTimeout(serverTick, 1000 / TICKS_PER_SECOND);
 }
 
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
@@ -200,7 +201,7 @@ function Creature(template, x, y, color, socketID) {
 	this.maxHP = this.con * 10;
 	this.HP = this.maxHP;
 	this.atk = this.str;
-	this.reqAP = Math.floor(25 * (1 * Math.pow(this.agi*125*Math.E, (-this.agi/1250))));
+	this.reqAP = Math.floor(30 * (1 * Math.pow(this.agi*125*Math.E, (-this.agi/1250))));
 	this.AP = 0;
 
 	this.limbs = template.limbs;
