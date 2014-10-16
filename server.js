@@ -45,6 +45,10 @@ function createArray(length) {
 	return arr;
 }
 
+function getHTMLFormattedName(socket) {
+	return '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span>';
+}
+
 /* decided not to incorporate this, but I may decide to use it later
 function getExplodingRoll () { //returns random number from 0 to infinity
 	var result = (Math.random() + Math.random()) / 2;
@@ -61,7 +65,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 
 	if (aggressorSocketID) {
 		aggressorSocket = io.sockets.connected[aggressorSocketID];
-		aggressorNameStr = '<span style="color: rgb(' + aggressorSocket.rgb + ')">' + aggressorSocket.nickname + '</span>';
+		aggressorNameStr = getHTMLFormattedName(aggressorSocket);
 		aggressorNameStr_capitalized = aggressorNameStr;
 	} else {
 		aggressorNameStr = 'the ' + aggressor.fullName.toLowerCase();
@@ -74,7 +78,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 
 	if (targetSocketID) {
 		targetSocket = io.sockets.connected[targetSocketID];
-		targetNameStr = '<span style="color: rgb(' + targetSocket.rgb + ')">' + targetSocket.nickname + '</span>';
+		targetNameStr = getHTMLFormattedName(targetSocket);
 	} else {
 		targetNameStr = 'the ' + target.fullName.toLowerCase();
 	}
@@ -431,8 +435,10 @@ function changeNickname (socket, nickname) {
 				if (index !== -1)
 					claimedNicknames.splice(index, 1);
 				claimedNicknames.push(nickname);
-				io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has changed their name to <span style="color: rgb(' + socket.rgb + ')">' + nickname + '</span>.'});
+				var msg = getHTMLFormattedName(socket) + ' has changed their name to ';
 				socket.nickname = nickname;
+				msg +=  getHTMLFormattedName(socket);
+				io.sockets.emit('chatMessage', { message: msg});
 			} else {
 				socket.emit('chatMessage', { message: 'That name has already been claimed.'});
 			}
@@ -600,7 +606,7 @@ io.sockets.on('connection', function (socket) {
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
 
-	io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has connected.' });
+	io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has connected.' });
 
 	socket.on('moveCommand', function (data) {
 		if (Math.abs(data.x) + Math.abs(data.y) === 1) {
@@ -616,7 +622,7 @@ io.sockets.on('connection', function (socket) {
 		if (data.message.length) {
 			if (data.message.substring(0, 1) !== '/') {
 				if (Date.now() - socket.lastMsgTime > 500) {
-					data.nickname = '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span>';
+					data.nickname = getHTMLFormattedName(socket);
 					io.sockets.emit('chatMessage', data);
 
 					socket.lastMsgTime = Date.now();
@@ -655,6 +661,6 @@ io.sockets.on('connection', function (socket) {
 			return el.id === socket.game_player.id;
 		});
 		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
-		io.sockets.emit('chatMessage', { message: '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span> has disconnected.' });
+		io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has disconnected.' });
 	});
 });
