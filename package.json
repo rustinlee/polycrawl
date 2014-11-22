@@ -14,6 +14,7 @@
 		"socket.io": "1.1.x",
 		"underscore": "1.7.x",
 		"validator": "3.18.x",
+		"pathfinding": "0.4.x",
 		"strip-json-comments": "1.0.x",
 		"gulp": "3.8.x",
 		"gulp-concat": "2.4.x",

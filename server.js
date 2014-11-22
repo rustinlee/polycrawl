@@ -147,6 +147,8 @@ function StoredTurn (type, data) {
 }
 
 function serverTick () {
+	var updateFlag = false;
+
 	_und.each(dungeon.gameEntities, function(creature) {
 		creature.AP++;
 
@@ -156,10 +158,15 @@ function serverTick () {
 			if (creature.socketID) { //if a player, execute stored turn
 				if (creature.hasStoredTurn()) {
 					creature.executeStoredTurn();
+					updateFlag = true;
 					creature.AP = 0;
 				}
 			} else {
-				//no computer controlled creature AI yet
+				var path = dungeon.finder.findPath(creature.x, creature.y, creature.AITarget.x, creature.AITarget.y, dungeon.pfGrid.clone());
+				console.log(path);
+				console.log((creature.x - path[0][0]) + ' ' + (creature.y - path[0][1]));
+				creature.move(path[1][0] - creature.x, path[1][1] - creature.y, dungeon);
+				updateFlag = true;
 				creature.AP = 0;
 			}
 		}
@@ -168,6 +175,10 @@ function serverTick () {
 			io.sockets.connected[creature.socketID].emit('apBarUpdate', (creature.AP / creature.reqAP) * 100);
 		}
 	});
+
+	if (updateFlag) {
+		io.sockets.emit('entitiesData', [dungeon.gameEntities]);
+	}
 
 	setTimeout(serverTick, 1000 / TICKS_PER_SECOND);
 }
@@ -377,6 +388,7 @@ function spawnCreature (socket, cmd, level) {
 
 				if (template) {
 					var creature = new Creature(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
+					creature.AITarget = {x: socket.game_player.x, y: socket.game_player.y};
 					level.gameEntities.push(creature);
 					io.sockets.emit('entitiesData', [dungeon.gameEntities]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
