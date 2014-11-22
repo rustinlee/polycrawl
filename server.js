@@ -123,7 +123,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 
 			if (targetSocket) { //respawn creature if a player is controlling it
 				targetSocket.emit('chatMessage', { message: 'You have died!' });
-				targetSocket.game_player = new Creature(mobDefinitions['human'], playerSpawn.x, playerSpawn.y, targetSocket.color, targetSocket.id);
+				targetSocket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, targetSocket.color, targetSocket.id);
 				level.gameEntities.push(targetSocket.game_player);
 				targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
 			}
