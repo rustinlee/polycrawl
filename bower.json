@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"dependencies": {
 		"jquery": "1.11.x",
-		"Keypress": "2.0.3",
+		"Keypress": "2.1.x",
 		"unicodetiles.js": "tapio/unicodetiles.js",
 		"FontLoader": "smnh/FontLoader"
 	},
