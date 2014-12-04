@@ -31,7 +31,15 @@
 				"hpValue": 0.25,
 				"dmgMult": 1,
 				"manipulator": true,
-				"locomotor": false
+				"locomotor": false,
+				"weapon": { //ability to use limb as a weapon if fighting unarmed
+					"baseDamage": 1, //innate weapon damage
+					"strScaling": 2, //extra damage per STR point, may end up coupling this with a "weight" stat
+					"hitChance": 1.2, //1.2x easier to land a hit than the baseline
+					"critChance": 0.6, //scores crits 0.6x less than the baseline
+					"speed": 10, //chance to strike more than once, multiplicative with DEX and (later) weapon proficiency
+					"verb": "punched" //past tense verb of attacking action, might add synonyms later
+				}
 			},
 			{
 				"name": "right arm",
@@ -39,7 +47,15 @@
 				"hpValue": 0.25,
 				"dmgMult": 1,
 				"manipulator": true,
-				"locomotor": false
+				"locomotor": false,
+				"weapon": {
+					"baseDamage": 1,
+					"strScaling": 2,
+					"hitChance": 1.2,
+					"critChance": 0.6,
+					"speed": 10,
+					"verb": "punched"
+				}
 			},
 			{
 				"name": "left leg",
@@ -47,7 +63,15 @@
 				"hpValue": 0.3,
 				"dmgMult": 1,
 				"manipulator": false,
-				"locomotor": true
+				"locomotor": true,
+				"weapon": {
+					"baseDamage": 2,
+					"strScaling": 2.5,
+					"hitChance": 0.9,
+					"critChance": 0.7,
+					"speed": 2,
+					"verb": "kicked"
+				}
 			},
 			{
 				"name": "right leg",
@@ -55,7 +79,15 @@
 				"hpValue": 0.3,
 				"dmgMult": 1,
 				"manipulator": false,
-				"locomotor": true
+				"locomotor": true,
+				"weapon": {
+					"baseDamage": 2,
+					"strScaling": 2.5,
+					"hitChance": 0.9,
+					"critChance": 0.7,
+					"speed": 2,
+					"verb": "kicked"
+				}
 			}
 		]
 	},
@@ -92,7 +124,15 @@
 				"hpValue": 0.25,
 				"dmgMult": 1,
 				"manipulator": true,
-				"locomotor": false
+				"locomotor": false,
+				"weapon": {
+					"baseDamage": 1,
+					"strScaling": 2,
+					"hitChance": 1.2,
+					"critChance": 0.6,
+					"speed": 10,
+					"verb": "punched"
+				}
 			},
 			{
 				"name": "right arm",
@@ -100,7 +140,15 @@
 				"hpValue": 0.25,
 				"dmgMult": 1,
 				"manipulator": true,
-				"locomotor": false
+				"locomotor": false,
+				"weapon": {
+					"baseDamage": 1,
+					"strScaling": 2,
+					"hitChance": 1.2,
+					"critChance": 0.6,
+					"speed": 10,
+					"verb": "punched"
+				}
 			},
 			{
 				"name": "left leg",
@@ -108,7 +156,15 @@
 				"hpValue": 0.3,
 				"dmgMult": 1,
 				"manipulator": false,
-				"locomotor": true
+				"locomotor": true,
+				"weapon": {
+					"baseDamage": 2,
+					"strScaling": 2.5,
+					"hitChance": 0.9,
+					"critChance": 0.7,
+					"speed": 2,
+					"verb": "kicked"
+				}
 			},
 			{
 				"name": "right leg",
@@ -116,7 +172,15 @@
 				"hpValue": 0.3,
 				"dmgMult": 1,
 				"manipulator": false,
-				"locomotor": true
+				"locomotor": true,
+				"weapon": {
+					"baseDamage": 2,
+					"strScaling": 2.5,
+					"hitChance": 0.9,
+					"critChance": 0.7,
+					"speed": 2,
+					"verb": "kicked"
+				}
 			}
 		]
 	}

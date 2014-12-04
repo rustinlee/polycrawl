@@ -86,16 +86,23 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	}
 
 	//very simple placeholder calculations
-	var dmg = aggressor.atk; //how much damage the attack can deal
+	var weaponLimbs = _und.filter(aggressor.limbs, function(limb) {
+		return limb.weapon;
+	});
+
+	var weapon = weaponLimbs[Math.floor(Math.random() * weaponLimbs.length)].weapon; //forced to use limbs as weapons since there are no item weapons yet
+
+	var dmg = weapon.baseDamage + weapon.strScaling * aggressor.str; //how much damage the attack can deal
 
 	dmg += Math.ceil((Math.random() * 0.2 - 0.1) * dmg); //add or remove 10% rounded up to give variety
+	dmg = Math.floor(dmg); //round off the final damage
 
 	var rollToHit = 1 / (1 + Math.pow(Math.E, -((target.agi / aggressor.dex) * 2 - 4))); //fancy sigmoid function
-	var attackHit = (Math.random() >= rollToHit); //did the attack land
+	var attackHit = (Math.random() * weapon.hitChance >= rollToHit); //did the attack land
 
 	if (attackHit) {
 		var critModifier = 1.5; //amount to modify damage if critical hit, should be determined by weapon
-		var critted = Math.random() > 0.95; //luck stat will probably affect this later on
+		var critted = Math.random() * weapon.critChance > 0.95; //luck stat will probably affect this later on
 
 		if (critted) {
 			dmg = Math.ceil(dmg * critModifier);
@@ -104,13 +111,13 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 		target.HP -= dmg;
 
 		if (aggressorSocket) {
-			aggressorSocket.emit('chatMessage', { message: 'You have hit ' +  targetNameStr + ' for ' + dmg + ' damage.'});
+			aggressorSocket.emit('chatMessage', { message: 'You have ' + weapon.verb + ' ' +  targetNameStr + ' for ' + dmg + ' damage.'});
 			if (critted)
 				aggressorSocket.emit('chatMessage', { message: 'Scored a critical hit!'});
 		}
 
 		if (targetSocket) {
-			targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has hit you for ' + dmg + ' damage.' });
+			targetSocket.emit('chatMessage', { message: aggressorNameStr + ' has ' + weapon.verb + ' you for ' + dmg + ' damage.' });
 			targetSocket.emit('hpBarUpdate', (target.HP / target.maxHP) * 100);
 			if (critted)
 				targetSocket.emit('chatMessage', { message: 'Struck by a critical hit!'});
