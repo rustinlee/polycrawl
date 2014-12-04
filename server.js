@@ -169,12 +169,22 @@ function serverTick () {
 					creature.AP = 0;
 				}
 			} else {
-				var path = dungeon.finder.findPath(creature.x, creature.y, creature.AITarget.x, creature.AITarget.y, dungeon.pfGrid.clone());
-				console.log(path);
-				console.log((creature.x - path[0][0]) + ' ' + (creature.y - path[0][1]));
-				creature.move(path[1][0] - creature.x, path[1][1] - creature.y, dungeon);
-				updateFlag = true;
-				creature.AP = 0;
+				if (creature.AITarget !== null) { //can't just check truth because 0 is a valid creature ID
+					var AITargetCreature = _und.find(dungeon.gameEntities, function(a) {
+						return a.id == creature.AITarget;
+					});
+
+					if (AITargetCreature) {
+						var path = dungeon.finder.findPath(creature.x, creature.y, AITargetCreature.x, AITargetCreature.y, dungeon.pfGrid.clone());
+						creature.move(path[1][0] - creature.x, path[1][1] - creature.y, dungeon);
+						updateFlag = true;
+						creature.AP = 0;
+					} else {
+						creature.AITarget = null; //assume target is dead and remove target from AI
+					}
+				} else {
+					//todo: AI for acquiring new target
+				}
 			}
 		}
 
@@ -395,7 +405,7 @@ function spawnCreature (socket, cmd, level) {
 
 				if (template) {
 					var creature = new Creature(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
-					creature.AITarget = {x: socket.game_player.x, y: socket.game_player.y};
+					creature.AITarget = socket.game_player.id;
 					level.gameEntities.push(creature);
 					io.sockets.emit('entitiesData', [dungeon.gameEntities]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
