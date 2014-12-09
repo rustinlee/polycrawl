@@ -22,17 +22,17 @@ app.use(express.static(__dirname + '/public'));
 global.io = require('socket.io').listen(app.listen(port));
 console.log("Listening on port " + port);
 
-function randomString(len, charSet) {
-    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var randomString = '';
+function randomSimpleString(len, charSet) {
+    charSet = charSet || 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnprstuvwxyz0123456789';
+    var randomSimpleString = '';
     for (var i = 0; i < len; i++) {
     	var randomPoz = Math.floor(Math.random() * charSet.length);
-    	randomString += charSet.substring(randomPoz,randomPoz+1);
+    	randomSimpleString += charSet.substring(randomPoz,randomPoz+1);
     }
-    return randomString;
+    return randomSimpleString;
 }
 
-var adminPass = randomString(5);
+var adminPass = randomSimpleString(5);
 console.log("Admin commands passcode: " + adminPass);
 
 function createArray(length) {
