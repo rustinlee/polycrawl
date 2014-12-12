@@ -19,6 +19,11 @@ body, html {
 	background-color: #000000;
 }
 
+#stats-pane {
+	float: right;
+	background-color: #222222;
+}
+
 #game {
 	position: absolute;
 	left: 0px;
@@ -59,11 +64,9 @@ body, html {
 }
 
 #hp-bar-container {
-	position: absolute;
-	left: 1%;
-	top: 1%;
-	width: 70%;
-	height: 2%;
+	position: relative;
+	width: 100%;
+	height: 3%;
 	background-color: #C0C0C0;
 }
 
@@ -74,11 +77,9 @@ body, html {
 }
 
 #ap-bar-container {
-	position: absolute;
-	left: 1%;
-	top: 4%;
-	width: 70%;
-	height: 2%;
+	position: relative;
+	width: 100%;
+	height: 3%;
 	background-color: #C0C0C0;
 }
 

@@ -42,22 +42,33 @@ function getDungeonTile(x, y) {
 	}
 }
 
+var cachedFontSize;
 function resizeTerminal() {
 	var fontSizeW = $(window).innerWidth() / HORIZ_TILES;
 	var fontSizeH = $(window).innerHeight() / VERT_TILES;
-	var fontSize = Math.min(fontSizeW, fontSizeH);
-	$('body').css('font-size', fontSize);
+	var fontSize = Math.floor(Math.min(fontSizeW, fontSizeH));
 
-	term.setRenderer('auto');
-	term.render();
+	if(fontSize !== cachedFontSize) {
+		$('body').css('font-size', fontSize);
 
-	$('#main-view').css('width', fontSize * HORIZ_TILES);
-	$('#main-view').css('height', fontSize * VERT_TILES);
-	var viewWidth = parseInt($('#main-view').css('height'));
-	var viewHeight = parseInt($('#main-view').css('width'));
-	$('#main-view').css('margin', -viewWidth / 2 + 'px 0 0 ' + -viewHeight / 2 + 'px');
+		term.setRenderer('auto');
+		term.render();
 
-	$('#msg-log').scrollTop($('#msg-log').prop('scrollHeight'));
+		var viewWidth = fontSize * HORIZ_TILES * (4/3);
+		var viewHeight = fontSize * VERT_TILES;
+		$('#main-view').css('width', viewWidth);
+		$('#main-view').css('height', viewHeight);
+		$('#main-view').css('margin', -viewHeight / 2 + 'px 0 0 ' + -viewWidth / 2 + 'px');
+
+		$('#stats-pane').css('height', viewHeight);
+		$('#stats-pane').css('width', viewWidth / 4);
+
+		$('#game').css('height', viewHeight);
+
+		$('#msg-log').scrollTop($('#msg-log').prop('scrollHeight'));
+	}
+
+	cachedFontSize = fontSize;
 }
 
 function onWindowResize() {
@@ -95,6 +106,10 @@ $(document).ready(function() {
 	});
 
 	$('#game').on('click', function() {
+		chatFocused = false;
+	});
+
+	$('#stats-pane').on('click', function() {
 		chatFocused = false;
 	});
 
