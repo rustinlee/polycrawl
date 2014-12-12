@@ -22,6 +22,7 @@
 		"gulp-sourcemaps": "1.2.x",
 		"gulp-jshint": "1.8.x",
 		"gulp-minify-css": "0.3.x",
+		"gulp-less": "2.0.x",
 		"gulp-ignore": "1.2.x",
 		"gulp-rename": "1.2.x",
 		"main-bower-files": "2.0.x",

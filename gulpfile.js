@@ -4,6 +4,8 @@ var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var jshint = require('gulp-jshint');
 var minifyCSS = require('gulp-minify-css');
+var path = require('path');
+var less = require('gulp-less');
 var ignore = require('gulp-ignore');
 var rename = require('gulp-rename');
 var del = require('del');
@@ -11,7 +13,7 @@ var mainBowerFiles = require('main-bower-files');
 
 var paths = {
 	scripts: 'public/*.js',
-	css: 'public/*.css'
+	less: 'public/*.less'
 };
 
 gulp.task('clean', function(cb) {
@@ -41,14 +43,19 @@ gulp.task('compileJS', ['clean'], function() {
 		.pipe(gulp.dest('public/dist/js'));
 });
 
-gulp.task('compileCSS', ['clean'], function () {
+gulp.task('compileCSS', ['clean'], function() {
 	gulp.src(mainBowerFiles(), { base: 'bower_components' })
 		.pipe(ignore.include('*.css'))
 		.pipe(concat('components.min.css'))
 		.pipe(minifyCSS())
 		.pipe(gulp.dest('public/dist/styles'));
+});
 
-	gulp.src(paths.css)
+gulp.task('compileLESS', ['clean'], function() {
+	gulp.src(paths.less)
+		.pipe(less({
+			paths: [ path.join(__dirname, 'less', 'includes') ]
+		}))
 		.pipe(concat('style.min.css'))
 		.pipe(minifyCSS())
 		.pipe(gulp.dest('public/dist/styles'));
@@ -60,7 +67,7 @@ gulp.task('writeFonts', ['clean'], function () {
 		.pipe(gulp.dest('public/dist/styles'))
 });
 
-gulp.task('no-watch', ['test', 'compileJS', 'compileCSS', 'writeFonts']);
+gulp.task('no-watch', ['test', 'compileJS', 'compileCSS', 'compileLESS', 'writeFonts']);
 
 gulp.task('watch', function() {
   gulp.watch(paths.scripts, ['no-watch']);
