@@ -212,7 +212,23 @@ $(document).ready(function() {
 		hpBar.css('width', data + '%');
 	});
 
-	socket.on('apBarUpdate', function (data) {
-		apBar.css('width', data + '%');
+	var updateAPBarInterval;
+	var currentAP;
+	function updateAPBar(reqAP) {
+		currentAP++;
+		if (currentAP > reqAP) {
+			currentAP = reqAP;
+			clearInterval(updateAPBarInterval);
+		}
+
+		var currentWidth = apBar.css('width').split('%')[0];
+		apBar.css('width', (currentAP / reqAP) * 100 + '%');
+		console.log(currentAP + '/' + reqAP);
+	}
+
+	socket.on('apBarReset', function (data) {
+		currentAP = 0;
+		apBar.css('width', '0%');
+		updateAPBarInterval = setInterval(updateAPBar, 1000 / data.tickrate, data.reqAP);
 	});
 });

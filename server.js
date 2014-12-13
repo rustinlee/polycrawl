@@ -167,6 +167,10 @@ function serverTick () {
 					creature.executeStoredTurn();
 					updateFlag = true;
 					creature.AP = 0;
+					io.sockets.connected[creature.socketID].emit('apBarReset', {
+						tickrate: TICKS_PER_SECOND,
+						reqAP: creature.reqAP
+					}); //tell the client the server tickrate and required AP so it can simulate AP bar progress on its own
 				}
 			} else {
 				if (creature.AITarget !== null) { //can't just check truth because 0 is a valid creature ID
@@ -186,10 +190,6 @@ function serverTick () {
 					//todo: AI for acquiring new target
 				}
 			}
-		}
-
-		if (creature.socketID) {
-			io.sockets.connected[creature.socketID].emit('apBarUpdate', (creature.AP / creature.reqAP) * 100);
 		}
 	});
 
