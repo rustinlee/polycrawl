@@ -42,30 +42,34 @@ function getDungeonTile(x, y) {
 	}
 }
 
+function resizeTerminal(fontSize) {
+	$('body').css('font-size', fontSize);
+
+	term.setRenderer('auto');
+	term.render();
+
+	var viewWidth = fontSize * HORIZ_TILES * (4/3);
+	var viewHeight = fontSize * VERT_TILES;
+	$('#main-view').css('width', viewWidth);
+	$('#main-view').css('height', viewHeight);
+	$('#main-view').css('margin', -viewHeight / 2 + 'px 0 0 ' + -viewWidth / 2 + 'px');
+
+	$('#stats-pane').css('height', viewHeight);
+	$('#stats-pane').css('width', viewWidth / 4);
+
+	$('#game').css('height', viewHeight);
+
+	$('#msg-log').scrollTop($('#msg-log').prop('scrollHeight'));
+}
+
 var cachedFontSize;
-function resizeTerminal() {
+function computeFontSize() {
 	var fontSizeW = $(window).innerWidth() / HORIZ_TILES;
 	var fontSizeH = $(window).innerHeight() / VERT_TILES;
 	var fontSize = Math.floor(Math.min(fontSizeW, fontSizeH));
 
 	if(fontSize !== cachedFontSize) {
-		$('body').css('font-size', fontSize);
-
-		term.setRenderer('auto');
-		term.render();
-
-		var viewWidth = fontSize * HORIZ_TILES * (4/3);
-		var viewHeight = fontSize * VERT_TILES;
-		$('#main-view').css('width', viewWidth);
-		$('#main-view').css('height', viewHeight);
-		$('#main-view').css('margin', -viewHeight / 2 + 'px 0 0 ' + -viewWidth / 2 + 'px');
-
-		$('#stats-pane').css('height', viewHeight);
-		$('#stats-pane').css('width', viewWidth / 4);
-
-		$('#game').css('height', viewHeight);
-
-		$('#msg-log').scrollTop($('#msg-log').prop('scrollHeight'));
+		resizeTerminal(fontSize);
 	}
 
 	cachedFontSize = fontSize;
@@ -73,7 +77,7 @@ function resizeTerminal() {
 
 function onWindowResize() {
 	if (initialized)
-		resizeTerminal();
+		computeFontSize();
 }
 
 function initializeUt(mapData, terminalElement) {
@@ -94,7 +98,7 @@ $(document).ready(function() {
 
 	var fontLoader = new FontLoader(['DejaVuSansMono'], {
 		'fontLoaded': function(fontFamily) {
-			onWindowResize();
+			resizeTerminal();
 		}
 	}, 5000);
 	fontLoader.loadFonts();
