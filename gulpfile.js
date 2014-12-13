@@ -71,7 +71,7 @@ gulp.task('no-watch', ['test', 'compileJS', 'compileCSS', 'compileLESS', 'writeF
 
 gulp.task('watch', function() {
   gulp.watch(paths.scripts, ['no-watch']);
-  gulp.watch(paths.css, ['no-watch']);
+  gulp.watch(paths.less, ['no-watch']);
 });
 
 gulp.task('default', ['no-watch', 'watch']);
