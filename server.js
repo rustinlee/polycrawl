@@ -1,6 +1,7 @@
 var express = require("express");
 var _und = require('underscore');
 var validator = require('validator');
+var NanoTimer = require('nanotimer');
 var stripJsonComments = require('strip-json-comments');
 var fs = require('fs');
 var map = require('./lib/map');
@@ -9,6 +10,11 @@ var port = process.env.PORT || 8080;
 
 //var game = require('./game');
 var TICKS_PER_SECOND = 30;
+var timerObj = new NanoTimer();
+
+var debug = {
+	timing: false
+};
 
 app.set('views', __dirname + '/views');
 app.set('view engine', "jade");
@@ -153,9 +159,19 @@ function StoredTurn (type, data) {
 	this.turnData = data;
 }
 
+var lateFlag = false;
+var tickNum = 0;
+var lastSecond = process.hrtime();
 function serverTick () {
-	var updateFlag = false;
+	var tickStart = process.hrtime();
 
+	if (debug.timing) {
+		tickNum++;
+		if (tickNum % TICKS_PER_SECOND === 0)
+			console.log('hrtime before tick: ' + tickStart);
+	}
+
+	var updateFlag = false;
 	_und.each(dungeon.gameEntities, function(creature) {
 		creature.AP++;
 
@@ -197,7 +213,29 @@ function serverTick () {
 		io.sockets.emit('entitiesData', [dungeon.gameEntities]);
 	}
 
-	setTimeout(serverTick, 1000 / TICKS_PER_SECOND);
+	var dtHrTime = process.hrtime(tickStart);
+	var dt = dtHrTime[0] * 1e9 + dtHrTime[1];
+	var timeout = 1000000000 / TICKS_PER_SECOND - dt;
+	if (timeout < 0) { //I doubt this will ever be a problem but I went ahead and set up a flag for server running behind on ticks
+		timeout = 0;
+		lateFlag = true;
+	} else {
+		lateFlag = false;
+	}
+
+	if (lateFlag)
+		console.log('Warning: server ticks running behind');
+
+	if (debug.timing && tickNum % TICKS_PER_SECOND === 0) {
+		console.log('hrtime after tick: ' + process.hrtime());
+		var dtLastSecond = process.hrtime(lastSecond);
+		console.log('Nanoseconds taken to process a second worth of ticks: ' + (dtLastSecond[0] * 1e9 + dtLastSecond[1]));
+		console.log('Nanoseconds taken to perform a single tick: ' + dt);
+		console.log('Nanoseconds to wait before next tick: ' + timeout);
+		lastSecond = process.hrtime();
+	}
+
+	timerObj.setTimeout(serverTick, null, timeout + 'n');
 }
 
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
@@ -448,8 +486,6 @@ function positionCommand (socket, dungeon, cmd) {
 	}
 }
 
-serverTick();
-
 io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
@@ -520,3 +556,5 @@ io.sockets.on('connection', function (socket) {
 		io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has disconnected.' });
 	});
 });
+
+serverTick();
