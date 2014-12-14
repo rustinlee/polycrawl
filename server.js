@@ -134,7 +134,7 @@ function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocke
 		}
 	}
 
-	io.sockets.emit('entitiesData', [level.gameEntities]);
+	io.sockets.emit('entitiesData', [level.getTrimmedGameEntities()]);
 }
 
 function StoredTurn(type, data) {
@@ -193,7 +193,7 @@ function serverTick() {
 	});
 
 	if (updateFlag) {
-		io.sockets.emit('entitiesData', [dungeon.gameEntities]);
+		io.sockets.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 	}
 
 	var dtHrTime = process.hrtime(tickStart);
@@ -272,8 +272,8 @@ function Creature(template, x, y, color, socketID) {
 
 			if (this.socketID) {
 				var socket = io.sockets.connected[this.socketID];
-				socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
-				socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+				socket.emit('entitiesData', [dungeon.getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 			}
 		}
 
@@ -428,7 +428,7 @@ function spawnCreature(socket, cmd, level) {
 					var creature = new Creature(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
 					creature.AITarget = socket.game_player.id;
 					level.gameEntities.push(creature);
-					io.sockets.emit('entitiesData', [dungeon.gameEntities]);
+					io.sockets.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
 				} else {
 					socket.emit('chatMessage', { message: 'Creature type not recognized.' });
@@ -457,8 +457,8 @@ function positionCommand(socket, dungeon, cmd) {
 			} else {
 				socket.game_player.x = x;
 				socket.game_player.y = y;
-				socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
-				socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+				socket.emit('entitiesData', [dungeon.getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 				socket.emit('chatMessage', { message: 'Position changed to (' + socket.game_player.x + ', ' + socket.game_player.y + ').'});
 			}
 		}
@@ -477,7 +477,7 @@ io.sockets.on('connection', function (socket) {
 	socket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, socket.color, socket.id);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
-	socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+	socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
 
@@ -535,7 +535,7 @@ io.sockets.on('connection', function (socket) {
 		dungeon.gameEntities = _und.reject(dungeon.gameEntities, function(el) {
 			return el.id === socket.game_player.id;
 		});
-		socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
+		socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 		io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has disconnected.' });
 	});
 });
