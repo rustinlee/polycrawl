@@ -1,4 +1,4 @@
-var express = require("express");
+var express = require('express');
 var _und = require('underscore');
 var validator = require('validator');
 var NanoTimer = require('nanotimer');
@@ -8,7 +8,6 @@ var map = require('./lib/map');
 var app = express();
 var port = process.env.PORT || 8080;
 
-//var game = require('./game');
 var TICKS_PER_SECOND = 30;
 var timerObj = new NanoTimer();
 
@@ -17,16 +16,16 @@ var debug = {
 };
 
 app.set('views', __dirname + '/views');
-app.set('view engine', "jade");
+app.set('view engine', 'jade');
 app.engine('jade', require('jade').__express);
-app.get("/", function(req, res){
-	res.render("index");
+app.get('/', function(req, res){
+	res.render('index');
 });
 
 app.use(express.static(__dirname + '/public'));
 
 global.io = require('socket.io').listen(app.listen(port));
-console.log("Listening on port " + port);
+console.log('Listening on port ' + port);
 
 function randomSimpleString(len, charSet) {
     charSet = charSet || 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnprstuvwxyz0123456789';
@@ -39,7 +38,7 @@ function randomSimpleString(len, charSet) {
 }
 
 var adminPass = randomSimpleString(5);
-console.log("Admin commands passcode: " + adminPass);
+console.log('Admin commands passcode: ' + adminPass);
 
 function createArray(length) {
 	var arr = new Array(length || 0),
@@ -66,7 +65,7 @@ function getExplodingRoll () { //returns random number from 0 to infinity
 }
 */
 
-function simulateCombat (aggressor, target, level, aggressorSocketID, targetSocketID) {
+function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocketID) {
 	var aggressorSocket;
 	var aggressorNameStr;
 	var aggressorNameStr_capitalized;
@@ -154,7 +153,7 @@ function simulateCombat (aggressor, target, level, aggressorSocketID, targetSock
 	io.sockets.emit('entitiesData', [level.gameEntities]);
 }
 
-function StoredTurn (type, data) {
+function StoredTurn(type, data) {
 	this.turnType = type;
 	this.turnData = data;
 }
@@ -162,7 +161,7 @@ function StoredTurn (type, data) {
 var lateFlag = false;
 var tickNum = 0;
 var lastSecond = process.hrtime();
-function serverTick () {
+function serverTick() {
 	var tickStart = process.hrtime();
 
 	if (debug.timing) {
@@ -318,7 +317,7 @@ var dungeon = map.drunkardsWalk(mapSize);
 
 var claimedNicknames = [];
 
-function changeNickname (socket, nickname) {
+function changeNickname(socket, nickname) {
 	var valid = validator.isAlphanumeric(nickname);
 
 	if (valid) {
@@ -347,7 +346,7 @@ function changeNickname (socket, nickname) {
 	}
 }
 
-function checkAdminPass (socket, pass) {
+function checkAdminPass(socket, pass) {
 	if (socket.isAdmin) {
 		socket.emit('chatMessage', { message: 'You are already authenticated as an admin.'});
 		return;
@@ -361,7 +360,7 @@ function checkAdminPass (socket, pass) {
 	}
 }
 
-function verifyAdminPermissions (socket) {
+function verifyAdminPermissions(socket) {
 	if (!socket.isAdmin) {
 		socket.emit('chatMessage', { message: 'Insufficient permissions.'});
 		return false;
@@ -370,7 +369,7 @@ function verifyAdminPermissions (socket) {
 	return true;
 }
 
-function validatePosition (x, y, mapData) {
+function validatePosition(x, y, mapData) {
 	var results = {};
 
 	var outOfBoundsX = x < 0 || x > mapData.length;
@@ -386,7 +385,7 @@ function validatePosition (x, y, mapData) {
 	return results;
 }
 
-function getCreaturesAtPosition (x, y, level) {
+function getCreaturesAtPosition(x, y, level) {
 	var a = _und.filter(level.gameEntities, function(entity) {
 		var matchesX = entity.x === parseInt(x);
 		var matchesY = entity.y === parseInt(y);
@@ -396,7 +395,7 @@ function getCreaturesAtPosition (x, y, level) {
 	return a;
 }
 
-function getCreaturesAtPositionCommand (socket, cmd, level) {
+function getCreaturesAtPositionCommand(socket, cmd, level) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
@@ -422,7 +421,7 @@ function getCreaturesAtPositionCommand (socket, cmd, level) {
 	}
 }
 
-function spawnCreature (socket, cmd, level) {
+function spawnCreature(socket, cmd, level) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
@@ -457,7 +456,7 @@ function spawnCreature (socket, cmd, level) {
 	}
 }
 
-function positionCommand (socket, dungeon, cmd) {
+function positionCommand(socket, dungeon, cmd) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}

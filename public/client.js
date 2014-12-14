@@ -163,7 +163,7 @@ $(document).ready(function() {
 	});
 
 	//socket.IO server message handling
-	socket.on('chatMessage', function (data) {
+	socket.on('chatMessage', function(data) {
 		if (!data.nickname) {
 			$('#msg-log').append('<b>' + data.message + '</b>');
 		} else {
@@ -175,7 +175,7 @@ $(document).ready(function() {
 		$('#msg-log').scrollTop($('#msg-log').prop('scrollHeight'));
 	});
 
-	socket.on('levelData', function (data) {
+	socket.on('levelData', function(data) {
 		if(initialized === false) {
 			initializeUt(data[0].mapData, termElement);
 			onWindowResize();
@@ -196,7 +196,7 @@ $(document).ready(function() {
 		drawMap(playerPos);
 	});
 
-	socket.on('entitiesData', function (data) {
+	socket.on('entitiesData', function(data) {
 		currentLevel.gameEntities = data[0];
 		if(data.length > 1)
 			playerPos = data[1];
@@ -212,11 +212,11 @@ $(document).ready(function() {
 		drawMap(playerPos);
 	});
 
-	socket.on('hpBarUpdate', function (data) {
+	socket.on('hpBarUpdate', function(data) {
 		hpBar.css('width', data + '%');
 	});
 
-	socket.on('apBarReset', function (data) {
+	socket.on('apBarReset', function(data) {
 		currentAP = 0;
 		apBar.stop();
 		apBar.css('width', '0%');
