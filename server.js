@@ -40,18 +40,6 @@ function randomSimpleString(len, charSet) {
 var adminPass = randomSimpleString(5);
 console.log('Admin commands passcode: ' + adminPass);
 
-function createArray(length) {
-	var arr = new Array(length || 0),
-		i = length;
-
-	if (arguments.length > 1) {
-		var args = Array.prototype.slice.call(arguments, 1);
-		while(i--) arr[length-1 - i] = createArray.apply(this, args);
-	}
-
-	return arr;
-}
-
 function getHTMLFormattedName(socket) {
 	return '<span style="color: rgb(' + socket.rgb + ')">' + socket.nickname + '</span>';
 }
@@ -68,20 +56,16 @@ function getExplodingRoll () { //returns random number from 0 to infinity
 function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocketID) {
 	var aggressorSocket;
 	var aggressorNameStr;
-	var aggressorNameStr_capitalized;
 
 	if (aggressorSocketID) {
 		aggressorSocket = io.sockets.connected[aggressorSocketID];
 		aggressorNameStr = getHTMLFormattedName(aggressorSocket);
-		aggressorNameStr_capitalized = aggressorNameStr;
 	} else {
 		aggressorNameStr = 'the ' + aggressor.fullName.toLowerCase();
-		aggressorNameStr_capitalized = aggressorNameStr;
 	}
 
 	var targetSocket;
 	var targetNameStr;
-	var targetNameStr_capitalized;
 
 	if (targetSocketID) {
 		targetSocket = io.sockets.connected[targetSocketID];
@@ -276,11 +260,11 @@ function Creature(template, x, y, color, socketID) {
 
 	this.storeTurn = function(type, data) {
 		_storedTurn = new StoredTurn(type, data);
-	}
+	};
 
 	this.hasStoredTurn = function() {
 		return !_und.isEmpty(_storedTurn);
-	}
+	};
 
 	this.executeStoredTurn = function() {
 		if (_storedTurn.turnType === 'move') {
@@ -294,7 +278,7 @@ function Creature(template, x, y, color, socketID) {
 		}
 
 		_storedTurn = {};
-	}
+	};
 
 	this.move = function(x, y, level) {
 		var targetX = this.x + x;

@@ -8,7 +8,7 @@ var playerPos;
 var HORIZ_TILES = 30;
 var VERT_TILES = 30;
 
-function drawMap(position){
+function drawMap(position) {
 	renderEng.update(position.x, position.y);
 	for (var i = 0; i < currentLevel.gameEntities.length; i++) {
 		var entity = currentLevel.gameEntities[i];
@@ -26,11 +26,11 @@ function getDungeonTile(x, y) {
 
 	try {
 		symbol = currentLevel.mapData[x][y];
-	} catch(err) {
+	} catch (err) {
 		return ut.NULLTILE;
 	}
 
-	switch(symbol){
+	switch (symbol) {
 		case '#':
 			return WALL;
 		case '.':
@@ -217,7 +217,6 @@ $(document).ready(function() {
 	});
 
 	socket.on('apBarReset', function(data) {
-		currentAP = 0;
 		apBar.stop();
 		apBar.css('width', '0%');
 		apBar.animate({
