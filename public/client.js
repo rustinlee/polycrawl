@@ -98,7 +98,8 @@ $(document).ready(function() {
 
 	var fontLoader = new FontLoader(['DejaVuSansMono'], {
 		'fontLoaded': function(fontFamily) {
-			resizeTerminal();
+			if (initialized)
+				resizeTerminal();
 		}
 	}, 5000);
 	fontLoader.loadFonts();
