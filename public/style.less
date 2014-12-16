@@ -19,11 +19,6 @@ body, html {
 	background-color: #000000;
 }
 
-#stats-pane {
-	float: right;
-	background-color: #222222;
-}
-
 #game {
 	position: absolute;
 	left: 0px;
@@ -63,9 +58,18 @@ body, html {
 	border: none;
 }
 
+@ui-font: 'DejaVuSansMono';
+@ui-bg: #222222;
+@ui-border: #AAAAAA;
+@ui-text: #EEEEEE;
 @hp-color: #B80000;
 @ap-color: #E8E8E8;
 @bar-bg-darkness: 30%;
+
+#stats-pane {
+	float: right;
+	background-color: @ui-bg;
+}
 
 #hp-bar-container {
 	position: relative;
@@ -94,7 +98,20 @@ body, html {
 }
 
 #stats-list {
-	font-family: 'DejaVuSansMono';
-	color: #EEE;
+	font-family: @ui-font;
+	color: @ui-text;
 	margin: 1em;
+}
+
+.tooltip {
+	font-family: @ui-font;
+	font-size: 50%;
+	padding: 0.25em;
+	max-width: 20em;
+	color: @ui-text;
+	background-color: @ui-bg;
+	border: 0.25em solid @ui-border;
+	border-radius: 0.25em;
+	position: absolute;
+	z-index: 2;
 }

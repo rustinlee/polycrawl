@@ -229,4 +229,34 @@ $(document).ready(function() {
 			$('#' + key + '-stat').text(data[key]);
 		}
 	});
+
+	var moveTooltip = function(event) {
+		var tooltipX = event.pageX - 12;
+		var tooltipY = event.pageY + 12;
+		$('div.tooltip').css({top: tooltipY, left: tooltipX});
+	};
+
+	var showTooltip = function(event) {
+		$('div.tooltip').remove();
+		$('<div class="tooltip">' + event.data.string + '</div>').appendTo('body');
+		moveTooltip(event);
+	};
+
+	var hideTooltip = function() {
+		$('div.tooltip').remove();
+	};
+
+	var statTooltips = {
+		con: 'Constitution increases your hit points (HP) which represent your ability to withstand damage. (Planned) Lessens the duration and/or seriousness of harmful status effects. Increases range of bows and thrown items.',
+		str: 'Increases the damage done by melee weapons. (Planned) Decreases the effects of overencumberance from carrying a heavy inventory.',
+		dex: 'Increases the accuracy of melee attacks and their ability to deal critical damage. (Planned) Slightly increases melee damage and greatly increases accuracy of ranged attacks, including some targeted spells.',
+		agi: 'Increases the chance to dodge enemy attacks and reduces the amount of time required between actions.'
+	};
+
+	for (var key in statTooltips) {
+		var elem = $('#' + key + '-stat-div');
+		elem.on('mousemove', moveTooltip);
+		elem.on('mouseenter', {string: statTooltips[key]}, showTooltip);
+		elem.on('mouseleave', hideTooltip);
+	}
 });
