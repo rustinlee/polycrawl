@@ -38,7 +38,7 @@ gulp.task('compileJS', ['clean'], function() {
 	gulp.src(paths.scripts)
 		.pipe(sourcemaps.init())
 			.pipe(concat('client.min.js'))
-			.pipe(uglify())
+			.pipe(uglify().on('error', function(e) { console.log('\x07',e.message); return this.end(); }))
 		.pipe(sourcemaps.write('../maps'))
 		.pipe(gulp.dest('public/dist/js'));
 });
