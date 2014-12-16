@@ -81,12 +81,12 @@ function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocke
 
 	var weapon = weaponLimbs[Math.floor(Math.random() * weaponLimbs.length)].weapon; //forced to use limbs as weapons since there are no item weapons yet
 
-	var dmg = weapon.baseDamage + weapon.strScaling * aggressor.str; //how much damage the attack can deal
+	var dmg = weapon.baseDamage + weapon.strScaling * aggressor.stats.str; //how much damage the attack can deal
 
 	dmg += Math.ceil((Math.random() * 0.2 - 0.1) * dmg); //add or remove 10% rounded up to give variety
 	dmg = Math.floor(dmg); //round off the final damage
 
-	var rollToHit = 1 / (1 + Math.pow(Math.E, -((target.agi / aggressor.dex) * 2 - 4))); //fancy sigmoid function
+	var rollToHit = 1 / (1 + Math.pow(Math.E, -((target.stats.agi / aggressor.stats.dex) * 2 - 4))); //fancy sigmoid function
 	var attackHit = (Math.random() * weapon.hitChance >= rollToHit); //did the attack land
 
 	if (attackHit) {
@@ -122,6 +122,7 @@ function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocke
 				targetSocket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, targetSocket.color, targetSocket.id);
 				level.gameEntities.push(targetSocket.game_player);
 				targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
+				socket.emit('statsData', socket.game_player.stats);
 			}
 		}
 	} else {
@@ -241,17 +242,13 @@ function Creature(template, x, y, color, socketID) {
 	}
 
 	//primary stats
-	//maybe just replace this with the 1 stats object
-	this.con = template.stats.con;
-	this.str = template.stats.str;
-	this.dex = template.stats.dex;
-	this.agi = template.stats.agi;
+	this.stats = template.stats;
 
 	//secondary (derived) stats
-	this.maxHP = this.con * 10;
+	this.maxHP = this.stats.con * 10;
 	this.HP = this.maxHP;
-	this.atk = this.str;
-	this.reqAP = Math.floor(30 * (1 * Math.pow(this.agi*125*Math.E, (-this.agi/1250))));
+	this.atk = this.stats.str;
+	this.reqAP = Math.floor(30 * (1 * Math.pow(this.stats.agi*125*Math.E, (-this.stats.agi/1250))));
 	this.AP = 0;
 
 	this.limbs = template.limbs;
@@ -476,6 +473,7 @@ io.sockets.on('connection', function (socket) {
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
 	socket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, socket.color, socket.id);
 	dungeon.gameEntities.push(socket.game_player);
+	socket.emit('statsData', socket.game_player.stats);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);

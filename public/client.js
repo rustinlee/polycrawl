@@ -223,4 +223,10 @@ $(document).ready(function() {
 			width: '100%'
 		}, (data.reqAP / data.tickrate) * 1000, 'linear');
 	});
+
+	socket.on('statsData', function(data) {
+		for (var key in data) {
+			$('#' + key + '-stat').text(data[key]);
+		}
+	});
 });
