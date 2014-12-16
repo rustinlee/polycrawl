@@ -249,9 +249,9 @@ $(document).ready(function() {
 
 	var statTooltips = {
 		con: 'Constitution increases your hit points (HP) which represent your ability to withstand damage. (Planned) Lessens the duration and/or seriousness of harmful status effects. Increases range of bows and thrown items.',
-		str: 'Increases the damage done by melee weapons. (Planned) Decreases the effects of overencumberance from carrying a heavy inventory.',
-		dex: 'Increases the accuracy of melee attacks and their ability to deal critical damage. (Planned) Slightly increases melee damage and greatly increases accuracy of ranged attacks, including some targeted spells.',
-		agi: 'Increases the chance to dodge enemy attacks and reduces the amount of time required between actions.'
+		str: 'Strength increases the damage done by melee weapons. (Planned) Decreases the effects of overencumberance from carrying a heavy inventory.',
+		dex: 'Dexterity increases the accuracy of melee attacks and their ability to deal critical damage. (Planned) Slightly increases melee damage and greatly increases accuracy of ranged attacks, including some targeted spells.',
+		agi: 'Agility increases the chance to dodge enemy attacks and reduces the amount of time required between actions.'
 	};
 
 	for (var key in statTooltips) {
