@@ -122,7 +122,7 @@ function simulateCombat(aggressor, target, level, aggressorSocketID, targetSocke
 				targetSocket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, targetSocket.color, targetSocket.id);
 				level.gameEntities.push(targetSocket.game_player);
 				targetSocket.emit('hpBarUpdate', (targetSocket.game_player.HP / targetSocket.game_player.maxHP) * 100);
-				targetSocket.emit('statsData', socket.game_player.stats);
+				targetSocket.emit('statsData', targetSocket.game_player.stats);
 			}
 		}
 	} else {
