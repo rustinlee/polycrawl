@@ -15,7 +15,6 @@
 		"underscore": "1.7.x",
 		"validator": "3.22.x",
 		"pathfinding": "0.4.x",
-		"nanotimer": "0.3.x",
 		"strip-json-comments": "1.0.x",
 		"gulp": "3.8.x",
 		"gulp-concat": "2.4.x",

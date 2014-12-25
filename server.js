@@ -1,7 +1,6 @@
 var express = require('express');
 var _und = require('underscore');
 var validator = require('validator');
-var NanoTimer = require('nanotimer');
 var stripJsonComments = require('strip-json-comments');
 var fs = require('fs');
 var map = require('./lib/map');
@@ -9,7 +8,7 @@ var app = express();
 var port = process.env.PORT || 8080;
 
 var TICKS_PER_SECOND = 30;
-var timerObj = new NanoTimer();
+var NS_PER_TICK = 1000000000 / TICKS_PER_SECOND;
 
 var debug = {
 	timing: false
@@ -218,8 +217,23 @@ function serverTick() {
 		console.log('Nanoseconds to wait before next tick: ' + timeout);
 		lastSecond = process.hrtime();
 	}
+}
 
-	timerObj.setTimeout(serverTick, null, timeout + 'n');
+var previousTick = process.hrtime();
+function gameLoop() {
+	var now = process.hrtime();
+
+	if (previousTick[0] * 1e9 + previousTick[1] + NS_PER_TICK <= now[0] * 1e9 + now[1]) {
+		previousTick = process.hrtime();
+		serverTick();
+	}
+
+	var d = process.hrtime(previousTick);
+	if (d[0] * 1e9 + d[1] < NS_PER_TICK - 1000000) {
+		setTimeout(gameLoop);
+	} else {
+		setImmediate(gameLoop);
+	}
 }
 
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
@@ -538,4 +552,4 @@ io.sockets.on('connection', function (socket) {
 	});
 });
 
-serverTick();
+gameLoop();
