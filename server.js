@@ -31,12 +31,12 @@ console.log('Listening on port ' + port);
 
 function randomSimpleString(len, charSet) {
     charSet = charSet || 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnprstuvwxyz0123456789';
-    var randomSimpleString = '';
+    var str = '';
     for (var i = 0; i < len; i++) {
-    	var randomPoz = Math.floor(Math.random() * charSet.length);
-    	randomSimpleString += charSet.substring(randomPoz,randomPoz+1);
+    	var randomPos = Math.floor(Math.random() * charSet.length);
+    	str += charSet.substring(randomPos, randomPos + 1);
     }
-    return randomSimpleString;
+    return str;
 }
 
 var adminPass = randomSimpleString(5);
