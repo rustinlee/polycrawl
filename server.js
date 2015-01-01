@@ -330,7 +330,7 @@ function spawnCreature(socket, cmd, level) {
 	}
 }
 
-function positionCommand(socket, dungeon, cmd) {
+function positionCommand(socket, cmd, level) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
@@ -338,7 +338,7 @@ function positionCommand(socket, dungeon, cmd) {
 	if (cmd.length === 3 && !isNaN(parseInt(cmd[1])) && !isNaN(parseInt(cmd[2]))) {
 		var x = parseInt(cmd[1]);
 		var y = parseInt(cmd[2]);
-		var validationResults = dungeon.validatePosition(x, y);
+		var validationResults = level.validatePosition(x, y);
 		if (validationResults.outOfBounds) {
 			socket.emit('chatMessage', { message: 'Target location is out of the map boundaries.'});
 		} else {
@@ -347,8 +347,8 @@ function positionCommand(socket, dungeon, cmd) {
 			} else {
 				socket.game_player.x = x;
 				socket.game_player.y = y;
-				socket.emit('entitiesData', [dungeon.getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
-				socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+				socket.emit('entitiesData', [level.getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [level.getTrimmedGameEntities()]);
 				socket.emit('chatMessage', { message: 'Position changed to (' + socket.game_player.x + ', ' + socket.game_player.y + ').'});
 			}
 		}
@@ -407,7 +407,7 @@ io.sockets.on('connection', function (socket) {
 						break;
 					case '/position':
 					case '/pos':
-						positionCommand(socket, dungeon, cmd);
+						positionCommand(socket, cmd, dungeon);
 						break;
 					case '/findat':
 						getCreaturesAtPositionCommand(socket, cmd, dungeon);
