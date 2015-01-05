@@ -7,6 +7,7 @@ var app = express();
 var port = process.env.PORT || 8080;
 
 var map = require('./lib/map.js');
+var getMap = map.getMap;
 var simulateCombat = require('./lib/combat.js').simulateCombat;
 var chatUtils = require('./lib/chatUtils.js');
 var getHTMLFormattedName = chatUtils.getHTMLFormattedName;
@@ -60,8 +61,9 @@ function serverTick() {
 			console.log('hrtime before tick: ' + tickStart);
 	}
 
+	var currentMap = getMap(0); //in the future when there is more than 1 map active at a time on the server, we'll need probably another loop to cover all the maps
 	var updateFlag = false;
-	_und.each(dungeon.gameEntities, function(mob) {
+	_und.each(currentMap.gameEntities, function(mob) {
 		mob.AP++;
 
 		if (mob.AP > mob.reqAP) {
@@ -79,13 +81,13 @@ function serverTick() {
 				}
 			} else {
 				if (mob.AITarget !== null) { //can't just check truth because 0 is a valid mob ID
-					var AITargetMob = _und.find(dungeon.gameEntities, function(a) {
+					var AITargetMob = _und.find(currentMap.gameEntities, function(a) {
 						return a.id == mob.AITarget;
 					});
 
 					if (AITargetMob) {
-						var path = dungeon.finder.findPath(mob.x, mob.y, AITargetMob.x, AITargetMob.y, dungeon.pfGrid.clone());
-						mob.move(path[1][0] - mob.x, path[1][1] - mob.y, dungeon);
+						var path = currentMap.finder.findPath(mob.x, mob.y, AITargetMob.x, AITargetMob.y, currentMap.pfGrid.clone());
+						mob.move(path[1][0] - mob.x, path[1][1] - mob.y);
 						updateFlag = true;
 						mob.AP = 0;
 					} else {
@@ -99,7 +101,7 @@ function serverTick() {
 	});
 
 	if (updateFlag) {
-		io.sockets.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+		io.sockets.emit('entitiesData', [currentMap.getTrimmedGameEntities()]); //will need some way of filtering which sockets get this data according to what map they're on, probably through socket.io rooms. iterating through all the mobs again and looking for player controlled ones would work but we'll eventually need to segregate other things (chat communication etc) based on maps as well
 	}
 
 	var dtHrTime = process.hrtime(tickStart);
@@ -145,7 +147,8 @@ function gameLoop() {
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
 var mobID = 0; //probably need to move this to the map
 
-function Mob(template, x, y, color, socketID) {
+function Mob(template, x, y, color, mapIndex, socketID) {
+	this.mapIndex = mapIndex; //the index of the map the mob is currently on
 	this.fullName = template.fullName;
 	this.symbol = template.symbol;
 	this.color =  color || [255, 255, 255];
@@ -174,17 +177,17 @@ function Mob(template, x, y, color, socketID) {
 
 	var _storedTurn = {};
 
-	this.move = function(x, y, level) {
+	this.move = function(x, y) {
 		var targetX = this.x + x;
 		var targetY = this.y + y;
-		if (level.mapData[targetX][targetY] !== '#') {
-			var mobsAtPosition = level.getMobsAtPosition(targetX, targetY);
+		if (getMap(this.mapIndex).mapData[targetX][targetY] !== '#') {
+			var mobsAtPosition = getMap(this.mapIndex).getMobsAtPosition(targetX, targetY);
 			if (mobsAtPosition.length === 0) {
 				this.x += x;
 				this.y += y;
 			} else {
 				var targetSocketID = mobsAtPosition[0].socketID;
-				simulateCombat(this, mobsAtPosition[0], level, this.socketID, targetSocketID);
+				simulateCombat(this, mobsAtPosition[0], getMap(this.mapIndex), this.socketID, targetSocketID);
 			}
 		}
 	};
@@ -199,12 +202,12 @@ function Mob(template, x, y, color, socketID) {
 
 	this.executeStoredTurn = function() {
 		if (_storedTurn.turnType === 'move') {
-			this.move(_storedTurn.turnData.x, _storedTurn.turnData.y, dungeon);
+			this.move(_storedTurn.turnData.x, _storedTurn.turnData.y);
 
 			if (this.socketID) {
 				var socket = io.sockets.connected[this.socketID];
-				socket.emit('entitiesData', [dungeon.getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
-				socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+				socket.emit('entitiesData', [getMap(this.mapIndex).getTrimmedGameEntities(), {x: socket.game_player.x, y: socket.game_player.y}]);
+				socket.broadcast.emit('entitiesData', [getMap(this.mapIndex).getTrimmedGameEntities()]);
 			}
 		}
 
@@ -213,7 +216,7 @@ function Mob(template, x, y, color, socketID) {
 }
 
 var mapSize = 2500; //number of walkable tiles in the final map
-var dungeon = map.drunkardsWalk(mapSize);
+map.drunkardsWalk(mapSize);
 
 var claimedNicknames = [];
 function changeNickname(socket, nickname) {
@@ -314,10 +317,10 @@ function spawnMob(socket, cmd, level) {
 				var template = mobDefinitions[cmd[3]];
 
 				if (template) {
-					var mob = new Mob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
+					var mob = new Mob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255], socket.game_player.mapIndex);
 					mob.AITarget = socket.game_player.id;
 					level.gameEntities.push(mob);
-					io.sockets.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+					io.sockets.emit('entitiesData', [getMap(socket.game_player.mapIndex).getTrimmedGameEntities()]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
 				} else {
 					socket.emit('chatMessage', { message: 'Mob type not recognized.' });
@@ -358,26 +361,27 @@ function positionCommand(socket, cmd, level) {
 	}
 }
 
+var spawnMapIndex = 0; //index of the map new players will spawn on
 io.sockets.on('connection', function (socket) {
-	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
-	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = new Mob(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, socket.color, socket.id);
-	dungeon.gameEntities.push(socket.game_player);
+	socket.game_player = new Mob(mobDefinitions['human'], getMap(spawnMapIndex).playerSpawn.x, getMap(spawnMapIndex).playerSpawn.y, socket.color, spawnMapIndex, socket.id);
+	getMap(spawnMapIndex).gameEntities.push(socket.game_player);
 	socket.emit('statsData', socket.game_player.stats);
-	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
-	socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+	socket.emit('levelData', [getMap(spawnMapIndex), {x: socket.game_player.x, y: socket.game_player.y}]);
+	socket.broadcast.emit('entitiesData', [getMap(spawnMapIndex).getTrimmedGameEntities()]);
+
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
 
+
 	io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has connected.' });
+	socket.emit('chatMessage', { message: 'Welcome to the lobby.' });
+	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 
 	socket.on('moveCommand', function (data) {
 		if (Math.abs(data.x) + Math.abs(data.y) === 1) {
 			socket.game_player.storeTurn('move', { x: data.x, y: data.y });
-			//socket.emit('entitiesData', [dungeon.gameEntities, {x: socket.game_player.x, y: socket.game_player.y}]);
-			//socket.broadcast.emit('entitiesData', [dungeon.gameEntities]);
 		}
 	});
 
@@ -406,13 +410,13 @@ io.sockets.on('connection', function (socket) {
 						break;
 					case '/position':
 					case '/pos':
-						positionCommand(socket, cmd, dungeon);
+						positionCommand(socket, cmd, getMap(socket.game_player.mapIndex));
 						break;
 					case '/findat':
-						getMobsAtPositionCommand(socket, cmd, dungeon);
+						getMobsAtPositionCommand(socket, cmd, getMap(socket.game_player.mapIndex));
 						break;
 					case '/spawn':
-						spawnMob(socket, cmd, dungeon);
+						spawnMob(socket, cmd, getMap(socket.game_player.mapIndex));
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
@@ -422,10 +426,10 @@ io.sockets.on('connection', function (socket) {
 	});
 
 	socket.on('disconnect', function() {
-		dungeon.gameEntities = _und.reject(dungeon.gameEntities, function(el) {
+		getMap(socket.game_player.mapIndex).gameEntities = _und.reject(getMap(socket.game_player.mapIndex).gameEntities, function(el) {
 			return el.id === socket.game_player.id;
 		});
-		socket.broadcast.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
+		socket.broadcast.emit('entitiesData', [getMap(socket.game_player.mapIndex).getTrimmedGameEntities()]);
 		io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has disconnected.' });
 	});
 });
