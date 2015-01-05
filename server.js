@@ -3,12 +3,13 @@ var _und = require('underscore');
 var validator = require('validator');
 var stripJsonComments = require('strip-json-comments');
 var fs = require('fs');
+var app = express();
+var port = process.env.PORT || 8080;
+
 var map = require('./lib/map.js');
 var simulateCombat = require('./lib/combat.js').simulateCombat;
 var chatUtils = require('./lib/chatUtils.js');
 var getHTMLFormattedName = chatUtils.getHTMLFormattedName;
-var app = express();
-var port = process.env.PORT || 8080;
 
 var TICKS_PER_SECOND = 30;
 var NS_PER_TICK = 1000000000 / TICKS_PER_SECOND;
@@ -60,35 +61,35 @@ function serverTick() {
 	}
 
 	var updateFlag = false;
-	_und.each(dungeon.gameEntities, function(creature) {
-		creature.AP++;
+	_und.each(dungeon.gameEntities, function(mob) {
+		mob.AP++;
 
-		if (creature.AP > creature.reqAP) {
-			creature.AP = creature.reqAP;
+		if (mob.AP > mob.reqAP) {
+			mob.AP = mob.reqAP;
 
-			if (creature.socketID) { //if a player, execute stored turn
-				if (creature.hasStoredTurn()) {
-					creature.executeStoredTurn();
+			if (mob.socketID) { //if a player, execute stored turn
+				if (mob.hasStoredTurn()) {
+					mob.executeStoredTurn();
 					updateFlag = true;
-					creature.AP = 0;
-					io.sockets.connected[creature.socketID].emit('apBarReset', {
+					mob.AP = 0;
+					io.sockets.connected[mob.socketID].emit('apBarReset', {
 						tickrate: TICKS_PER_SECOND,
-						reqAP: creature.reqAP
+						reqAP: mob.reqAP
 					}); //tell the client the server tickrate and required AP so it can simulate AP bar progress on its own
 				}
 			} else {
-				if (creature.AITarget !== null) { //can't just check truth because 0 is a valid creature ID
-					var AITargetCreature = _und.find(dungeon.gameEntities, function(a) {
-						return a.id == creature.AITarget;
+				if (mob.AITarget !== null) { //can't just check truth because 0 is a valid mob ID
+					var AITargetMob = _und.find(dungeon.gameEntities, function(a) {
+						return a.id == mob.AITarget;
 					});
 
-					if (AITargetCreature) {
-						var path = dungeon.finder.findPath(creature.x, creature.y, AITargetCreature.x, AITargetCreature.y, dungeon.pfGrid.clone());
-						creature.move(path[1][0] - creature.x, path[1][1] - creature.y, dungeon);
+					if (AITargetMob) {
+						var path = dungeon.finder.findPath(mob.x, mob.y, AITargetMob.x, AITargetMob.y, dungeon.pfGrid.clone());
+						mob.move(path[1][0] - mob.x, path[1][1] - mob.y, dungeon);
 						updateFlag = true;
-						creature.AP = 0;
+						mob.AP = 0;
 					} else {
-						creature.AITarget = null; //assume target is dead and remove target from AI
+						mob.AITarget = null; //assume target is dead and remove target from AI
 					}
 				} else {
 					//todo: AI for acquiring new target
@@ -142,17 +143,16 @@ function gameLoop() {
 }
 
 var mobDefinitions = JSON.parse(stripJsonComments(fs.readFileSync('./data/mobs.json', 'utf8')));
+var mobID = 0; //probably need to move this to the map
 
-var creatureID = 0;
-
-function Creature(template, x, y, color, socketID) {
+function Mob(template, x, y, color, socketID) {
 	this.fullName = template.fullName;
 	this.symbol = template.symbol;
 	this.color =  color || [255, 255, 255];
 	this.x = x;
 	this.y = y;
-	this.id = creatureID;
-	creatureID++;
+	this.id = mobID;
+	mobID++;
 
 	if (socketID) {
 		this.socketID = socketID;
@@ -173,6 +173,21 @@ function Creature(template, x, y, color, socketID) {
 	this.limbs = template.limbs;
 
 	var _storedTurn = {};
+
+	this.move = function(x, y, level) {
+		var targetX = this.x + x;
+		var targetY = this.y + y;
+		if (level.mapData[targetX][targetY] !== '#') {
+			var mobsAtPosition = level.getMobsAtPosition(targetX, targetY);
+			if (mobsAtPosition.length === 0) {
+				this.x += x;
+				this.y += y;
+			} else {
+				var targetSocketID = mobsAtPosition[0].socketID;
+				simulateCombat(this, mobsAtPosition[0], level, this.socketID, targetSocketID);
+			}
+		}
+	};
 
 	this.storeTurn = function(type, data) {
 		_storedTurn = new StoredTurn(type, data);
@@ -195,28 +210,12 @@ function Creature(template, x, y, color, socketID) {
 
 		_storedTurn = {};
 	};
-
-	this.move = function(x, y, level) {
-		var targetX = this.x + x;
-		var targetY = this.y + y;
-		if (level.mapData[targetX][targetY] !== '#') {
-			var creaturesAtPosition = level.getCreaturesAtPosition(targetX, targetY);
-			if (creaturesAtPosition.length === 0) {
-				this.x += x;
-				this.y += y;
-			} else {
-				var targetSocketID = creaturesAtPosition[0].socketID;
-				simulateCombat(this, creaturesAtPosition[0], level, this.socketID, targetSocketID);
-			}
-		}
-	};
 }
 
 var mapSize = 2500; //number of walkable tiles in the final map
 var dungeon = map.drunkardsWalk(mapSize);
 
 var claimedNicknames = [];
-
 function changeNickname(socket, nickname) {
 	var valid = validator.isAlphanumeric(nickname);
 
@@ -269,7 +268,7 @@ function verifyAdminPermissions(socket) {
 	return true;
 }
 
-function getCreaturesAtPositionCommand(socket, cmd, level) {
+function getMobsAtPositionCommand(socket, cmd, level) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
@@ -286,8 +285,8 @@ function getCreaturesAtPositionCommand(socket, cmd, level) {
 			if (!validationResults.isWalkable) {
 				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
 			} else {
-				var creatures = level.getCreaturesAtPosition(x, y);
-				socket.emit('chatMessage', { message: JSON.stringify(creatures) });
+				var mobs = level.getMobsAtPosition(x, y);
+				socket.emit('chatMessage', { message: JSON.stringify(mobs) });
 			}
 		}
 	} else {
@@ -295,7 +294,7 @@ function getCreaturesAtPositionCommand(socket, cmd, level) {
 	}
 }
 
-function spawnCreature(socket, cmd, level) {
+function spawnMob(socket, cmd, level) {
 	if (!verifyAdminPermissions(socket)) {
 		return;
 	}
@@ -315,13 +314,13 @@ function spawnCreature(socket, cmd, level) {
 				var template = mobDefinitions[cmd[3]];
 
 				if (template) {
-					var creature = new Creature(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
-					creature.AITarget = socket.game_player.id;
-					level.gameEntities.push(creature);
+					var mob = new Mob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255]);
+					mob.AITarget = socket.game_player.id;
+					level.gameEntities.push(mob);
 					io.sockets.emit('entitiesData', [dungeon.getTrimmedGameEntities()]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
 				} else {
-					socket.emit('chatMessage', { message: 'Creature type not recognized.' });
+					socket.emit('chatMessage', { message: 'Mob type not recognized.' });
 				}
 			}
 		}
@@ -364,7 +363,7 @@ io.sockets.on('connection', function (socket) {
 	socket.emit('chatMessage', { message: 'Type /nick to set a nickname.' });
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = new Creature(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, socket.color, socket.id);
+	socket.game_player = new Mob(mobDefinitions['human'], dungeon.playerSpawn.x, dungeon.playerSpawn.y, socket.color, socket.id);
 	dungeon.gameEntities.push(socket.game_player);
 	socket.emit('statsData', socket.game_player.stats);
 	socket.emit('levelData', [dungeon, {x: socket.game_player.x, y: socket.game_player.y}]);
@@ -410,10 +409,10 @@ io.sockets.on('connection', function (socket) {
 						positionCommand(socket, cmd, dungeon);
 						break;
 					case '/findat':
-						getCreaturesAtPositionCommand(socket, cmd, dungeon);
+						getMobsAtPositionCommand(socket, cmd, dungeon);
 						break;
 					case '/spawn':
-						spawnCreature(socket, cmd, dungeon);
+						spawnMob(socket, cmd, dungeon);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
