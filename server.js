@@ -208,7 +208,7 @@ function getMobsAtPositionCommand(socket, cmd, level) {
 	var x = parseInt(cmd[1]);
 	var y = parseInt(cmd[2]);
 
-	if (cmd.length === 3 && x !== NaN && y !== NaN) {
+	if (cmd.length === 3 && !isNaN(x) && !isNaN(y)) {
 		var validationResults = level.validatePosition(x, y);
 
 		if (validationResults.outOfBounds) {
@@ -234,7 +234,7 @@ function spawnMob(socket, cmd, level) {
 	var x = parseInt(cmd[1]);
 	var y = parseInt(cmd[2]);
 
-	if (cmd.length === 4 && x !== NaN && y !== NaN) {
+	if (cmd.length === 4 && !isNaN(x) && !isNaN(y)) {
 		var validationResults = level.validatePosition(x, y);
 
 		if (validationResults.outOfBounds) {
@@ -293,7 +293,7 @@ var spawnMapIndex = 0; //index of the map new players will spawn on
 io.sockets.on('connection', function (socket) {
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = global.activeMaps[spawnMapIndex].spawnMob(mobDefinitions['human'], global.activeMaps[spawnMapIndex].playerSpawn.x, global.activeMaps[spawnMapIndex].playerSpawn.y, socket.color, spawnMapIndex, socket.id);
+	socket.game_player = global.activeMaps[spawnMapIndex].spawnMob(mobDefinitions.human, global.activeMaps[spawnMapIndex].playerSpawn.x, global.activeMaps[spawnMapIndex].playerSpawn.y, socket.color, spawnMapIndex, socket.id);
 	socket.emit('statsData', socket.game_player.stats);
 	socket.emit('levelData', [global.activeMaps[spawnMapIndex], {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [global.activeMaps[spawnMapIndex].getTrimmedGameEntities()]);
