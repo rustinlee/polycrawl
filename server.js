@@ -4,10 +4,10 @@ var validator = require('validator');
 var app = express();
 var port = process.env.PORT || 8080;
 
-var Mob = require('./lib/mob.js');
-var mobDefinitions = Mob.mobDefinitions;
+var mob = require('./lib/mob.js');
+var mobDefinitions = mob.mobDefinitions;
+var Mob = mob.Mob;
 var map = require('./lib/map.js');
-var getMap = map.getMap;
 var simulateCombat = require('./lib/combat.js').simulateCombat;
 var chatUtils = require('./lib/chatUtils.js');
 var getHTMLFormattedName = chatUtils.getHTMLFormattedName;
@@ -61,7 +61,7 @@ function serverTick() {
 			console.log('hrtime before tick: ' + tickStart);
 	}
 
-	var currentMap = getMap(0); //in the future when there is more than 1 map active at a time on the server, we'll need probably another loop to cover all the maps
+	var currentMap = global.activeMaps[0]; //in the future when there is more than 1 map active at a time on the server, we'll need probably another loop to cover all the maps
 	var updateFlag = false;
 	_und.each(currentMap.gameEntities, function(mob) {
 		mob.AP++;
@@ -246,10 +246,9 @@ function spawnMob(socket, cmd, level) {
 				var template = mobDefinitions[cmd[3]];
 
 				if (template) {
-					var mob = new Mob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255], socket.game_player.mapIndex);
+					var mob = global.activeMaps[socket.game_player.mapIndex].spawnMob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255], socket.game_player.mapIndex);
 					mob.AITarget = socket.game_player.id;
-					level.gameEntities.push(mob);
-					io.sockets.emit('entitiesData', [getMap(socket.game_player.mapIndex).getTrimmedGameEntities()]);
+					io.sockets.emit('entitiesData', [global.activeMaps[socket.game_player.mapIndex].getTrimmedGameEntities()]);
 					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
 				} else {
 					socket.emit('chatMessage', { message: 'Mob type not recognized.' });
@@ -294,11 +293,10 @@ var spawnMapIndex = 0; //index of the map new players will spawn on
 io.sockets.on('connection', function (socket) {
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = new Mob(mobDefinitions['human'], getMap(spawnMapIndex).playerSpawn.x, getMap(spawnMapIndex).playerSpawn.y, socket.color, spawnMapIndex, socket.id);
-	getMap(spawnMapIndex).gameEntities.push(socket.game_player);
+	socket.game_player = global.activeMaps[spawnMapIndex].spawnMob(mobDefinitions['human'], global.activeMaps[spawnMapIndex].playerSpawn.x, global.activeMaps[spawnMapIndex].playerSpawn.y, socket.color, spawnMapIndex, socket.id);
 	socket.emit('statsData', socket.game_player.stats);
-	socket.emit('levelData', [getMap(spawnMapIndex), {x: socket.game_player.x, y: socket.game_player.y}]);
-	socket.broadcast.emit('entitiesData', [getMap(spawnMapIndex).getTrimmedGameEntities()]);
+	socket.emit('levelData', [global.activeMaps[spawnMapIndex], {x: socket.game_player.x, y: socket.game_player.y}]);
+	socket.broadcast.emit('entitiesData', [global.activeMaps[spawnMapIndex].getTrimmedGameEntities()]);
 
 	socket.nickname = 'Player ' + socket.id.substring(0, 5);
 	socket.lastMsgTime = Date.now();
@@ -339,13 +337,13 @@ io.sockets.on('connection', function (socket) {
 						break;
 					case '/position':
 					case '/pos':
-						positionCommand(socket, cmd, getMap(socket.game_player.mapIndex));
+						positionCommand(socket, cmd, global.activeMaps[socket.game_player.mapIndex]);
 						break;
 					case '/findat':
-						getMobsAtPositionCommand(socket, cmd, getMap(socket.game_player.mapIndex));
+						getMobsAtPositionCommand(socket, cmd, global.activeMaps[socket.game_player.mapIndex]);
 						break;
 					case '/spawn':
-						spawnMob(socket, cmd, getMap(socket.game_player.mapIndex));
+						spawnMob(socket, cmd, global.activeMaps[socket.game_player.mapIndex]);
 						break;
 					default:
 						socket.emit('chatMessage', { message: 'Command not recognized.'});
@@ -355,10 +353,10 @@ io.sockets.on('connection', function (socket) {
 	});
 
 	socket.on('disconnect', function() {
-		getMap(socket.game_player.mapIndex).gameEntities = _und.reject(getMap(socket.game_player.mapIndex).gameEntities, function(el) {
+		global.activeMaps[socket.game_player.mapIndex].gameEntities = _und.reject(global.activeMaps[socket.game_player.mapIndex].gameEntities, function(el) {
 			return el.id === socket.game_player.id;
 		});
-		socket.broadcast.emit('entitiesData', [getMap(socket.game_player.mapIndex).getTrimmedGameEntities()]);
+		socket.broadcast.emit('entitiesData', [global.activeMaps[socket.game_player.mapIndex].getTrimmedGameEntities()]);
 		io.sockets.emit('chatMessage', { message: getHTMLFormattedName(socket) + ' has disconnected.' });
 	});
 });
