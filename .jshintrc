@@ -1,0 +1,11 @@
+{
+	"maxerr": 50,
+	"node": true,
+	"globals": {
+		"$": false,
+		"ut": false,
+		"io": false,
+		"FontLoader": false,
+		"activeMaps": false
+	}
+}
