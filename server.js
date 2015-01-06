@@ -5,7 +5,6 @@ var app = express();
 var port = process.env.PORT || 8080;
 
 var mob = require('./lib/mob.js');
-var mobDefinitions = mob.mobDefinitions;
 var Mob = mob.Mob;
 var map = require('./lib/map.js');
 var simulateCombat = require('./lib/combat.js').simulateCombat;
@@ -243,13 +242,14 @@ function spawnMob(socket, cmd, level) {
 			if (!validationResults.isWalkable) {
 				socket.emit('chatMessage', { message: 'Target location is not a walkable tile.' });
 			} else {
-				var template = mobDefinitions[cmd[3]];
+				var templateName = cmd[3];
+				var valid = mob.validateType(templateName);
 
-				if (template) {
-					var mob = global.activeMaps[socket.game_player.mapIndex].spawnMob(template, parseInt(cmd[1]), parseInt(cmd[2]), [255, 255, 255], socket.game_player.mapIndex);
-					mob.AITarget = socket.game_player.id;
+				if (valid) {
+					var newMob = global.activeMaps[socket.game_player.mapIndex].spawnMob(templateName, x, y, [255, 255, 255], socket.game_player.mapIndex);
+					newMob.AITarget = socket.game_player.id;
 					io.sockets.emit('entitiesData', [global.activeMaps[socket.game_player.mapIndex].getTrimmedGameEntities()]);
-					socket.emit('chatMessage', { message: 'Spawned a ' + template.fullName + ' at (' + cmd[1] + ', ' + cmd[2] + ').' });
+					socket.emit('chatMessage', { message: 'Spawned a ' + newMob.fullName + ' at (' + x + ', ' + y + ').' });
 				} else {
 					socket.emit('chatMessage', { message: 'Mob type not recognized.' });
 				}
@@ -293,7 +293,7 @@ var spawnMapIndex = 0; //index of the map new players will spawn on
 io.sockets.on('connection', function (socket) {
 	socket.color = [Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150, Math.round(Math.random() * 105) + 150];
 	socket.rgb = socket.color[0] + ',' + socket.color[1] + ',' + socket.color[2];
-	socket.game_player = global.activeMaps[spawnMapIndex].spawnMob(mobDefinitions.human, global.activeMaps[spawnMapIndex].playerSpawn.x, global.activeMaps[spawnMapIndex].playerSpawn.y, socket.color, spawnMapIndex, socket.id);
+	socket.game_player = global.activeMaps[spawnMapIndex].spawnMob('human', global.activeMaps[spawnMapIndex].playerSpawn.x, global.activeMaps[spawnMapIndex].playerSpawn.y, socket.color, spawnMapIndex, socket.id);
 	socket.emit('statsData', socket.game_player.stats);
 	socket.emit('levelData', [global.activeMaps[spawnMapIndex], {x: socket.game_player.x, y: socket.game_player.y}]);
 	socket.broadcast.emit('entitiesData', [global.activeMaps[spawnMapIndex].getTrimmedGameEntities()]);
