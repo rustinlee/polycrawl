@@ -12,6 +12,7 @@ var del = require('del');
 var mainBowerFiles = require('main-bower-files');
 
 var paths = {
+	privateScripts: ['server.js', 'lib/*.js'],
 	scripts: 'public/*.js',
 	less: 'public/*.less'
 };
@@ -21,7 +22,7 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('test', function() {
-	return gulp.src(paths.scripts)
+	return gulp.src([].concat(paths.scripts).concat(paths.privateScripts))
 		.pipe(jshint())
 		.pipe(jshint.reporter('default'));
 });
